@@ -21,7 +21,7 @@ export function AppHeader(): React.JSX.Element {
     setLaunching(true)
     try {
       const config = await window.electron.config.get()
-      await window.electron.browser.launch(config)
+      await window.electron.xyBrowser.launch(config)
     } catch (error) {
       alert(error instanceof Error ? error.message : String(error))
     } finally {

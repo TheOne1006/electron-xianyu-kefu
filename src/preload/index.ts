@@ -17,8 +17,15 @@ const api = {
     get: () => invokeAndUnwrap('config:get'),
     save: (config: unknown) => ipcRenderer.invoke('config:save', config)
   },
-  browser: {
-    launch: (config: unknown) => ipcRenderer.invoke('browser:launch', config)
+  xyBrowser: {
+    launch: (config: unknown) => ipcRenderer.invoke('xy-browser:launch', config),
+    close: () => ipcRenderer.invoke('xy-browser:close'),
+    getStatus: () => invokeAndUnwrap<boolean>('xy-browser:getStatus'),
+    onStatusChange: (callback: (status: 'running' | 'closed') => void) => {
+      const handler = (_event: Electron.IpcRendererEvent, status: 'running' | 'closed') => callback(status)
+      ipcRenderer.on('xy-browser:status', handler)
+      return () => ipcRenderer.removeListener('xy-browser:status', handler)
+    }
   },
   agentConfig: {
     all: () => invokeAndUnwrap('agent-config:all'),
