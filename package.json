@@ -1,0 +1,85 @@
+{
+  "name": "electron-xianyu-kefu",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "基于 Electron 的闲鱼客服自动化工具，通过 AI 助手自动处理客户咨询",
+  "main": "./out/main/index.js",
+  "author": "TheOne",
+  "license": "MIT",
+  "homepage": "https://github.com/TheOne/electron-xianyu-kefu#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheOne/electron-xianyu-kefu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheOne/electron-xianyu-kefu/issues"
+  },
+  "keywords": [
+    "electron",
+    "xianyu",
+    "customer-service",
+    "ai",
+    "automation"
+  ],
+  "scripts": {
+    "build:injected": "esbuild src/injected/index.ts --bundle --format=iife --global-name=InjectedScript --outfile=resources/injected.bundle.js --platform=browser --external:fs --external:path",
+    "format": "prettier --write .",
+    "lint": "eslint --cache .",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "start": "electron-vite preview",
+    "dev": "npm run build:injected && electron-vite dev",
+    "build": "npm run typecheck && npm run build:injected && electron-vite build",
+    "postinstall": "electron-builder install-app-deps",
+    "build:unpack": "npm run build && electron-builder --dir",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "electron-vite build && electron-builder --mac",
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "electron-store": "10.1.0",
+    "openai": "^6.33.0",
+    "react-router-dom": "^7.13.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config-prettier": "^3.0.0",
+    "@electron-toolkit/eslint-config-ts": "^3.1.0",
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@types/jsdom": "^28.0.1",
+    "@types/node": "^22.19.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/coverage-v8": "4.1.2",
+    "consola": "^3.4.2",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^5.0.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "jsdom": "^29.0.1",
+    "memfs": "^4.57.1",
+    "playwright": "^1.59.1",
+    "prettier": "^3.7.4",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6",
+    "vitest": "^4.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  }
+}

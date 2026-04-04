@@ -1,0 +1,10 @@
+{
+  "model": "MiniMax-M2.7",
+  "baseURL": "https://api.minimaxi.com/v1",
+  "apiKey": "",
+  "language": "zh-CN",
+  "humanTakeoverKeywords": "。",
+  "browserUrl": "https://goofish.com",
+  "safetyFilterBlockedKeywords": ["微信", "QQ", "支付宝转账", "银行卡", "线下交易", "加我"],
+  "safetyFilterReplacement": "**"
+}

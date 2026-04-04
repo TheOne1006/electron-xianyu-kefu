@@ -1,0 +1,5 @@
+{
+  "temperature": 0.1,
+  "maxTokens": 20,
+  "prompt": "请根据用户消息判断意图类别，只返回以下类别之一：\n\n- bargain: 讨价还价，询问能不能便宜\n- inquiry: 商品咨询，询问商品详情、成色、发货等\n- greeting: 打招呼、问候\n- order: 确认下单、催发货等订单相关\n- other: 不属于以上类别\n\n只返回类别名称，不要其他内容。"
+}

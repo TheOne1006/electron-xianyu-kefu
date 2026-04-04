@@ -1,0 +1,19 @@
+node_modules
+dist
+out
+.DS_Store
+.eslintcache
+*.log*
+resources/*.js
+coverage
+.playwright-mcp
+ui-ux-pro-max
+
+
+# 忽略 agnet 
+.agents
+.claude
+.trae
+.specify
+.vscode
+superpowers
