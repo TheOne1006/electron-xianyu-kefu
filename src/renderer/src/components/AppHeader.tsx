@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
 
@@ -15,6 +15,16 @@ const pageTitles: Record<string, string> = {
 export function AppHeader(): React.JSX.Element {
   const location = useLocation()
   const [launching, setLaunching] = useState(false)
+  const [xyRunning, setXyRunning] = useState(false)
+
+  useEffect(() => {
+    window.electron.xyBrowser.getStatus().then(setXyRunning)
+    const unsub = window.electron.xyBrowser.onStatusChange((status) =>
+      setXyRunning(status === 'running')
+    )
+    return unsub
+  }, [])
+
   const { theme, toggleTheme } = useTheme()
 
   const handleLaunchBrowser = async (): Promise<void> => {
@@ -27,6 +37,10 @@ export function AppHeader(): React.JSX.Element {
     } finally {
       setLaunching(false)
     }
+  }
+
+  const handleCloseBrowser = async (): Promise<void> => {
+    await window.electron.xyBrowser.close()
   }
 
   return (
@@ -100,39 +114,70 @@ export function AppHeader(): React.JSX.Element {
           )}
         </button>
 
-        {/* 启动浏览器按钮 — 特殊样式，突出层级 */}
-        <button
-          onClick={handleLaunchBrowser}
-          disabled={launching}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            height: '34px',
-            padding: '0 14px',
-            fontSize: 'var(--text-body)',
-            fontWeight: 600,
-            fontFamily: 'var(--font-sans)',
-            color: '#fff',
-            background: launching
-              ? 'var(--bg-elevated)'
-              : 'linear-gradient(135deg, #f59e0b, #d97706)',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            cursor: launching ? 'not-allowed' : 'pointer',
-            opacity: launching ? 0.7 : 1,
-            transition: 'all var(--duration-fast) var(--ease-default)',
-            boxShadow: launching ? 'none' : '0 2px 8px rgba(245, 158, 11, 0.35)',
-            minWidth: '110px'
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
-          {launching ? '启动中...' : '启动浏览器'}
-        </button>
+        {/* 闲鱼浏览器状态按钮 */}
+        {xyRunning ? (
+          <button
+            onClick={handleCloseBrowser}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              height: '34px',
+              padding: '0 14px',
+              fontSize: 'var(--text-body)',
+              fontWeight: 600,
+              fontFamily: 'var(--font-sans)',
+              color: '#fff',
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              cursor: 'pointer',
+              transition: 'all var(--duration-fast) var(--ease-default)',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.35)',
+              minWidth: '110px'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            关闭浏览器
+          </button>
+        ) : (
+          <button
+            onClick={handleLaunchBrowser}
+            disabled={launching}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              height: '34px',
+              padding: '0 14px',
+              fontSize: 'var(--text-body)',
+              fontWeight: 600,
+              fontFamily: 'var(--font-sans)',
+              color: '#fff',
+              background: launching
+                ? 'var(--bg-elevated)'
+                : 'linear-gradient(135deg, #f59e0b, #d97706)',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              cursor: launching ? 'not-allowed' : 'pointer',
+              opacity: launching ? 0.7 : 1,
+              transition: 'all var(--duration-fast) var(--ease-default)',
+              boxShadow: launching ? 'none' : '0 2px 8px rgba(245, 158, 11, 0.35)',
+              minWidth: '110px'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+            {launching ? '启动中...' : '启动浏览器'}
+          </button>
+        )}
       </div>
     </header>
   )
