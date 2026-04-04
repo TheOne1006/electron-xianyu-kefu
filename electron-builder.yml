@@ -39,7 +39,3 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: github
-  owner: TheOne1006
-  repo: electron-xianyu-kefu
