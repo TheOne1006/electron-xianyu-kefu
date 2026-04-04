@@ -159,7 +159,7 @@ fi
 ```yaml
 publish:
   provider: github
-  owner: TheOne
+  owner: TheOne1006
   repo: electron-xianyu-kefu
 ```
 
