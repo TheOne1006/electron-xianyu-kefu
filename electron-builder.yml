@@ -11,6 +11,7 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+artifactName: ${name}-${version}-${arch}.${ext}
 win:
   executableName: 闲鱼客服自动回复助手
 nsis:
@@ -29,8 +30,6 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
 dmg:
   artifactName: ${name}-${version}.${ext}
-zip:
-  artifactName: ${name}-${version}-${arch}-mac.${ext}
 linux:
   target:
     - AppImage
