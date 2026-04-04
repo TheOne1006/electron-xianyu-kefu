@@ -16,6 +16,8 @@ jobs:
             build_cmd: build:mac
           - os: ubuntu-latest
             build_cmd: build:linux
+          - os: windows-latest
+            build_cmd: build:win
 
     permissions:
       contents: write
@@ -54,5 +56,6 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
+            dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
