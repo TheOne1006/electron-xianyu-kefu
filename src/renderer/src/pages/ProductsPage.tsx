@@ -14,6 +14,11 @@ export function ProductsPage(): React.JSX.Element {
   const [showAddModal, setShowAddModal] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [hoveredDoc, setHoveredDoc] = useState<{
+    content: string
+    x: number
+    y: number
+  } | null>(null)
   const { showToast } = useToast()
 
   const loadProducts = useCallback(async () => {
@@ -209,23 +214,34 @@ export function ProductsPage(): React.JSX.Element {
                   <td style={{ padding: 'var(--space-2) var(--space-3)' }}>
                     {product._documentTitles.length > 0 ? (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                        {product._documentTitles.map((title) => (
-                          <span
-                            key={title}
-                            title={allDocuments[title] ?? ''}
-                            style={{
-                              display: 'inline-block',
-                              padding: '2px 8px',
-                              fontSize: 'var(--text-xs)',
-                              borderRadius: 'var(--radius-sm)',
-                              backgroundColor: 'var(--bg-elevated)',
-                              border: '1px solid var(--border-default)',
-                              cursor: 'default'
-                            }}
-                          >
-                            {title}
-                          </span>
-                        ))}
+                        {product._documentTitles.map((docTitle) => {
+                          const content = allDocuments[docTitle] ?? ''
+                          return (
+                            <span
+                              key={docTitle}
+                              onMouseEnter={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect()
+                                setHoveredDoc({
+                                  content,
+                                  x: rect.left + rect.width / 2,
+                                  y: rect.top
+                                })
+                              }}
+                              onMouseLeave={() => setHoveredDoc(null)}
+                              style={{
+                                display: 'inline-block',
+                                padding: '2px 8px',
+                                fontSize: 'var(--text-xs)',
+                                borderRadius: 'var(--radius-sm)',
+                                backgroundColor: 'var(--bg-elevated)',
+                                border: '1px solid var(--border-default)',
+                                cursor: 'default'
+                              }}
+                            >
+                              {docTitle}
+                            </span>
+                          )
+                        })}
                       </div>
                     ) : (
                       '-'
@@ -319,6 +335,35 @@ export function ProductsPage(): React.JSX.Element {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 文档内容 Tooltip */}
+      {hoveredDoc && (
+        <div
+          style={{
+            position: 'fixed',
+            left: hoveredDoc.x,
+            top: hoveredDoc.y - 8,
+            transform: 'translate(-50%, -100%)',
+            maxWidth: 400,
+            maxHeight: 300,
+            overflow: 'auto',
+            padding: 'var(--space-3)',
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-primary)',
+            fontSize: 'var(--text-xs)',
+            lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+            zIndex: 1100,
+            pointerEvents: 'none'
+          }}
+        >
+          {hoveredDoc.content}
         </div>
       )}
     </div>
