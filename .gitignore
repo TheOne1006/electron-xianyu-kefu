@@ -18,3 +18,5 @@ ui-ux-pro-max
 .vscode
 superpowers
 docs/designs/*
+.env
+scripts
