@@ -16,6 +16,7 @@ jobs:
         uses: ./.github/actions/setup-build
 
       - name: 导入 Apple 证书
+        if: ${{ env.APPLE_CERTIFICATE != '' }}
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -39,13 +40,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: \
             -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-      - name: 构建 macOS 应用
+      - name: 构建 macOS 应用（签名 + 公证）
+        if: ${{ secrets.APPLE_CERTIFICATE != '' }}
         env:
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: pnpm exec electron-builder --mac --publish never
+
+      - name: 构建 macOS 应用（无签名）
+        if: ${{ secrets.APPLE_CERTIFICATE == '' }}
+        env:
+          CSC_IDENTITY: null
         run: pnpm exec electron-builder --mac --publish never
 
       - name: 上传产物到 Release
