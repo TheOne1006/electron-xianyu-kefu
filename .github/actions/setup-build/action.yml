@@ -1,0 +1,54 @@
+name: 'Setup Build'
+description: '检出代码、安装依赖、构建 injected 脚本和 Electron 应用'
+
+outputs:
+  version:
+    description: '从 package.json 读取的版本号'
+    value: ${{ steps.get-version.outputs.version }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 安装 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: 安装 pnpm
+      uses: pnpm/action-setup@v4
+
+    - name: 安装依赖
+      shell: bash
+      run: pnpm install
+
+    - name: 获取版本号
+      id: get-version
+      shell: bash
+      run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - name: 幂等创建 GitHub Release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        VERSION="${{ steps.get-version.outputs.version }}"
+        TAG="v${VERSION}"
+        if gh release view "${TAG}" >/dev/null 2>&1; then
+          echo "Release ${TAG} already exists, skipping creation"
+        else
+          gh release create "${TAG}" \
+            --title "${TAG}" \
+            --notes "自动发布 ${TAG}" \
+            --target main
+        fi
+
+    - name: 构建 injected 脚本
+      shell: bash
+      run: pnpm build:injected
+
+    - name: 构建 Electron 应用
+      shell: bash
+      run: pnpm exec electron-vite build
