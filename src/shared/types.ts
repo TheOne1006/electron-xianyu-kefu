@@ -22,7 +22,6 @@ export interface AppConfig {
   model: string
   baseURL: string
   apiKey: string
-  language: 'zh-CN' | 'en-US'
   humanTakeoverKeywords: string
   browserUrl: string
   safetyFilterBlockedKeywords: string[]

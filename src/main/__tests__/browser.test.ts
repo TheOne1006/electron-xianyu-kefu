@@ -29,7 +29,6 @@ const defaultConfig: AppConfig = {
   model: 'test-model',
   baseURL: 'https://api.test.com/v1',
   apiKey: 'test-key',
-  language: 'zh-CN',
   humanTakeoverKeywords: '',
   browserUrl: 'https://goofish.com',
   safetyFilterBlockedKeywords: ['微信', 'QQ'],

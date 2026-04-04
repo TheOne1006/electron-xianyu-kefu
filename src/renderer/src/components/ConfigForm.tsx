@@ -6,7 +6,6 @@ export function ConfigForm(): React.JSX.Element {
     model: 'MiniMax-M2.7',
     baseURL: 'https://api.minimaxi.com/v1',
     apiKey: '',
-    language: 'zh-CN',
     humanTakeoverKeywords: '',
     browserUrl: 'https://goofish.com',
     safetyFilterBlockedKeywords: ['微信', 'QQ', '支付宝转账', '银行卡', '线下交易', '加我'],
@@ -60,7 +59,7 @@ export function ConfigForm(): React.JSX.Element {
       {/* 左列：LLM 配置 */}
       <section className="card">
         <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
-          LLM 配置
+          模型设置
         </h2>
 
         <div
@@ -100,40 +99,10 @@ export function ConfigForm(): React.JSX.Element {
               autoComplete="off"
             />
           </div>
-
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Language</label>
-            <select
-              className="select-field"
-              value={config.language}
-              onChange={(e) => handleChange('language', e.target.value)}
-            >
-              <option value="zh-CN">中文 (zh-CN)</option>
-              <option value="en-US">English (en-US)</option>
-            </select>
-          </div>
         </div>
       </section>
 
-      {/* 右列：人工接管设置 */}
-      <section className="card">
-        <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
-          人工接管设置
-        </h2>
-
-        <div className="form-group" style={{ marginBottom: 0 }}>
-          <label className="form-label">触发字符</label>
-          <input
-            type="text"
-            className="input-field"
-            value={config.humanTakeoverKeywords}
-            onChange={(e) => handleChange('humanTakeoverKeywords', e.target.value)}
-          />
-          <p className="form-hint">检测到此字符时判定为人工接管，跳过 AI 回复</p>
-        </div>
-      </section>
-
-      {/* 左列：安全过滤 */}
+      {/* 右列：安全过滤 */}
       <section className="card">
         <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
           安全过滤
@@ -178,6 +147,24 @@ export function ConfigForm(): React.JSX.Element {
         </div>
       </section>
 
+      {/* 左列：人工接管设置 */}
+      <section className="card">
+        <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
+          人工接管设置
+        </h2>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">触发字符</label>
+          <input
+            type="text"
+            className="input-field"
+            value={config.humanTakeoverKeywords}
+            onChange={(e) => handleChange('humanTakeoverKeywords', e.target.value)}
+          />
+          <p className="form-hint">检测到此字符时判定为人工接管，跳过 AI 回复</p>
+        </div>
+      </section>
+
       {/* 右列：浏览器设置 */}
       <section className="card">
         <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
@@ -200,7 +187,7 @@ export function ConfigForm(): React.JSX.Element {
       {/* 保存按钮 - 占据整行 */}
       <section className="card" style={{ gridColumn: '1 / -1' }}>
         <button onClick={handleSave} disabled={saving} className="btn btn-primary btn-block btn-lg">
-          {saving ? '保存中...' : '保存配置'}
+          {saving ? '保存中...' : '保存设置'}
         </button>
       </section>
     </div>

@@ -8,7 +8,6 @@ const mockAppConfig = {
   model: 'gpt-4o',
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'test-key',
-  language: 'zh',
   humanTakeoverKeywords: '',
   safetyFilterBlockedKeywords: [] as string[],
   safetyFilterReplacement: ''

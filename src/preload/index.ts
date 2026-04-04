@@ -22,7 +22,8 @@ const api = {
     close: () => ipcRenderer.invoke('xy-browser:close'),
     getStatus: () => invokeAndUnwrap<boolean>('xy-browser:getStatus'),
     onStatusChange: (callback: (status: 'running' | 'closed') => void) => {
-      const handler = (_event: Electron.IpcRendererEvent, status: 'running' | 'closed'): void => callback(status)
+      const handler = (_event: Electron.IpcRendererEvent, status: 'running' | 'closed'): void =>
+        callback(status)
       ipcRenderer.on('xy-browser:status', handler)
       return () => ipcRenderer.removeListener('xy-browser:status', handler)
     }

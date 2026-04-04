@@ -56,7 +56,6 @@ src/shared/defaults/configs/app-config.json  # 默认配置
 | `model`                       | `string`             | LLM 模型名     | agent-runner.ts |
 | `baseURL`                     | `string`             | API 基础 URL   | agent-runner.ts |
 | `apiKey`                      | `string`             | API 密钥       | agent-runner.ts |
-| `language`                    | `'zh-CN' \| 'en-US'` | 回复语言       | browser.ts      |
 | `browserUrl`                  | `string`             | 闲鱼页面 URL   | browser.ts      |
 | `humanTakeoverKeywords`       | `string`             | 人工接管关键词 | agent.ts        |
 | `safetyFilterBlockedKeywords` | `string[]`           | 过滤关键词列表 | safety-filter.ts |

@@ -18,9 +18,7 @@ declare global {
         launch: (config: import('../shared/types').AppConfig) => Promise<void>
         close: () => Promise<void>
         getStatus: () => Promise<boolean>
-        onStatusChange: (
-          callback: (status: 'running' | 'closed') => void
-        ) => () => void
+        onStatusChange: (callback: (status: 'running' | 'closed') => void) => () => void
       }
       agentConfig: {
         all: () => Promise<

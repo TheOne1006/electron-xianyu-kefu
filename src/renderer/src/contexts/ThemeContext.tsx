@@ -13,7 +13,9 @@ function getInitialTheme(): Theme {
   try {
     const stored = localStorage.getItem('theme')
     if (stored === 'light' || stored === 'dark') return stored
-  } catch {}
+  } catch (e) {
+    console.warn('Failed to read theme from localStorage', e)
+  }
   return 'dark'
 }
 

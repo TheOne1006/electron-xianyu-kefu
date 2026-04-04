@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '../contexts/ToastContext'
 import type { AgentKey, AgentConfig } from '@shared/types'
+import systemDefault from '@shared/defaults/prompts/system.json'
+import classifyDefault from '@shared/defaults/prompts/classify.json'
+import defaultAgentDefault from '@shared/defaults/prompts/default.json'
+import priceDefault from '@shared/defaults/prompts/price.json'
+import techDefault from '@shared/defaults/prompts/tech.json'
 
 const AGENTS: { key: AgentKey; label: string; description: string }[] = [
   {
@@ -30,34 +35,15 @@ const AGENTS: { key: AgentKey; label: string; description: string }[] = [
   }
 ]
 
-const DEFAULT_CONFIGS: Record<AgentKey, AgentConfig> = {
-  system: { temperature: 0.7, maxTokens: 2048, prompt: '' },
-  classify: { temperature: 0.1, maxTokens: 50, prompt: '' },
-  default: { temperature: 0.7, maxTokens: 1024, prompt: '' },
-  price: { temperature: 0.7, maxTokens: 1024, prompt: '' },
-  tech: { temperature: 0.7, maxTokens: 1024, prompt: '' }
-}
-
-// 同步加载默认配置的 prompt 内容
-function getDefaultPrompt(key: AgentKey): string {
-  try {
-    const modules: Record<AgentKey, unknown> = {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      system: require('@shared/defaults/prompts/system.json'),
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      classify: require('@shared/defaults/prompts/classify.json'),
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      default: require('@shared/defaults/prompts/default.json'),
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      price: require('@shared/defaults/prompts/price.json'),
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      tech: require('@shared/defaults/prompts/tech.json')
-    }
-    const cfg = modules[key] as { temperature: number; maxTokens: number; prompt: string }
-    return cfg.prompt
-  } catch {
-    return ''
-  }
+const DEFAULT_PROMPTS: Record<
+  AgentKey,
+  { temperature: number; maxTokens: number; prompt: string }
+> = {
+  system: systemDefault,
+  classify: classifyDefault,
+  default: defaultAgentDefault,
+  price: priceDefault,
+  tech: techDefault
 }
 
 interface AgentCardData {
@@ -127,29 +113,23 @@ export function AgentConfigPage(): React.JSX.Element {
     [configs, showToast]
   )
 
-  const handleReset = useCallback(
-    (key: AgentKey) => {
-      const defaultPrompt = getDefaultPrompt(key)
-      const defaultTemp = DEFAULT_CONFIGS[key].temperature
-      const defaultTokens = DEFAULT_CONFIGS[key].maxTokens
+  const handleReset = useCallback((key: AgentKey) => {
+    const defaults = DEFAULT_PROMPTS[key]
 
-      setConfigs((prev) => ({
-        ...prev,
-        [key]: {
-          prompt: defaultPrompt,
-          temperature: defaultTemp,
-          maxTokens: defaultTokens
-        }
-      }))
-      setDirtyKeys((prev) => {
-        const next = new Set(prev)
-        next.delete(key)
-        return next
-      })
-      showToast('info', `${AGENTS.find((a) => a.key === key)?.label} 已重置为默认`)
-    },
-    [showToast]
-  )
+    setConfigs((prev) => ({
+      ...prev,
+      [key]: {
+        prompt: defaults.prompt,
+        temperature: defaults.temperature,
+        maxTokens: defaults.maxTokens
+      }
+    }))
+    setDirtyKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+  }, [])
 
   if (loading) {
     return (

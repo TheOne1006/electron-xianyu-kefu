@@ -109,9 +109,6 @@ export function ProductsPage(): React.JSX.Element {
         }}
       >
         <h2 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 600 }}>产品列表</h2>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
-          新增产品
-        </button>
       </div>
 
       {/* 表格 */}
@@ -234,7 +231,13 @@ export function ProductsPage(): React.JSX.Element {
                       '-'
                     )}
                   </td>
-                  <td style={{ padding: 'var(--space-2) var(--space-3)', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <td
+                    style={{
+                      padding: 'var(--space-2) var(--space-3)',
+                      textAlign: 'right',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
                     <button
                       className="btn btn-secondary btn-sm"
                       style={{ marginRight: 'var(--space-1)' }}
