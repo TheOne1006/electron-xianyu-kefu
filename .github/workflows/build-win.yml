@@ -1,0 +1,25 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - name: Setup Build
+        id: setup
+        uses: ./.github/actions/setup-build
+
+      - name: 构建 Windows 应用
+        run: pnpm exec electron-builder --win --publish never
+
+      - name: 上传产物到 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION="${{ steps.setup.outputs.version }}"
+          TAG="v${VERSION}"
+          gh release upload "${TAG}" dist/*.exe --clobber
