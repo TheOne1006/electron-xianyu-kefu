@@ -1,6 +1,6 @@
 {
   "name": "electron-xianyu-kefu",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "基于 Electron 的闲鱼客服自动化工具，通过 AI 助手自动处理客户咨询",
   "main": "./out/main/index.js",

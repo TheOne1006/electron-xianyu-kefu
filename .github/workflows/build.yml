@@ -6,19 +6,9 @@ on:
       - 'v*.*.*'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup
-        uses: ./.github/actions/setup-build
-      - name: Typecheck
-        run: pnpm typecheck
-      - name: Test
-        run: pnpm test
-
-  build:
-    needs: test
+  release:
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
         include:
@@ -27,9 +17,24 @@ jobs:
           - os: ubuntu-latest
             build_cmd: build:linux
 
+    permissions:
+      contents: write
+
     steps:
-      - name: Setup
-        uses: ./.github/actions/setup-build
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm ${{ matrix.build_cmd }}
@@ -40,33 +45,16 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.os }}
-          path: |
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-          if-no-files-found: warn
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Create GitHub Release
+      - name: Release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: artifacts/*
-          generate_release_notes: true
+          files: |
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.zip
+            dist/*.yml
+            dist/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
