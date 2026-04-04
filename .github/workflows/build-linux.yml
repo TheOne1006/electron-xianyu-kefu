@@ -1,0 +1,27 @@
+name: Build Linux
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Build
+        id: setup
+        uses: ./.github/actions/setup-build
+
+      - name: 安装打包依赖
+        run: sudo apt-get update && sudo apt-get install -y libarchive-dev
+
+      - name: 构建 Linux 应用
+        run: pnpm exec electron-builder --linux --publish never
+
+      - name: 上传产物到 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.setup.outputs.version }}"
+          TAG="v${VERSION}"
+          gh release upload "${TAG}" dist/*.AppImage dist/*.deb --clobber
