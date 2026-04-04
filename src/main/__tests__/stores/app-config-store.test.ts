@@ -6,7 +6,6 @@ const mockAppConfig = {
   model: 'gpt-4o',
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'test-key',
-  language: 'zh',
   humanTakeoverKeywords: '',
   safetyFilterBlockedKeywords: [] as string[],
   safetyFilterReplacement: ''
@@ -39,7 +38,6 @@ describe('app-config-store', () => {
       expect(config).toHaveProperty('model')
       expect(config).toHaveProperty('baseURL')
       expect(config).toHaveProperty('apiKey')
-      expect(config).toHaveProperty('language')
     })
 
     it('返回配置包含必需字段', () => {
@@ -53,9 +51,9 @@ describe('app-config-store', () => {
   describe('saveAppConfig', () => {
     it('保存部分配置后能正确读取', () => {
       const original = getAppConfig()
-      saveAppConfig({ language: 'en-US' })
+      saveAppConfig({ apiKey: 'new-test-key' })
       const updated = getAppConfig()
-      expect(updated.language).toBe('en-US')
+      expect(updated.apiKey).toBe('new-test-key')
       expect(updated.model).toBe(original.model)
     })
 

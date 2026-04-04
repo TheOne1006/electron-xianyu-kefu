@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { createWindow, setMainWindow } from './browser'
+import { createWindow, setMainWindow, closeXYBrowserWindow } from './browser'
 import { registerIpcHandlers } from './ipc-handlers'
 
 // 创建主窗口 (Main Window)，用于承载 renderer (渲染进程) 的 React 界面
@@ -29,6 +29,11 @@ function createMainWindow(): void {
 
   // 保存主窗口引用，用于向渲染进程发送消息
   setMainWindow(mainWindow)
+
+  // 主窗口关闭时联动关闭闲鱼浏览器窗口
+  mainWindow.on('close', () => {
+    closeXYBrowserWindow()
+  })
 }
 
 // 当 Electron 完成初始化 (initialization) 并准备好创建浏览器窗口时，将调用此方法。

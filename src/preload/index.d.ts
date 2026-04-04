@@ -14,8 +14,11 @@ declare global {
         get: () => Promise<import('../shared/types').AppConfig>
         save: (config: Partial<import('../shared/types').AppConfig>) => Promise<void>
       }
-      browser: {
+      xyBrowser: {
         launch: (config: import('../shared/types').AppConfig) => Promise<void>
+        close: () => Promise<void>
+        getStatus: () => Promise<boolean>
+        onStatusChange: (callback: (status: 'running' | 'closed') => void) => () => void
       }
       agentConfig: {
         all: () => Promise<

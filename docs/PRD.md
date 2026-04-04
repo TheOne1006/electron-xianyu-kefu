@@ -127,7 +127,6 @@ chat-helpers 每 5 秒轮询 hasUnreadMessages()
 | `model`                 | string             | MiniMax-M2.7                | LLM 模型名称                                               |
 | `baseURL`               | string             | https://api.minimaxi.com/v1 | LLM API 地址                                               |
 | `apiKey`                | string             | -                           | LLM API 密钥                                               |
-| `language`              | 'zh-CN' \| 'en-US' | zh-CN                       | AI 回复语言                                                |
 | `humanTakeoverKeywords` | string             | "。"                        | 检测到此关键词（isSelf=true）时判定人工接管，跳过 LLM 生成 |
 
 ---
@@ -272,5 +271,4 @@ interface ChatMessage {
 
 ## 6. 备注
 
-- `AppConfig.language` 字段目前用于控制面板语言（page-agent 已移除），是否也影响 AI 回复语言待确认。
 - 对话历史文件可用于后续模型训练数据积累，具体训练流程不在 V1 范围内。

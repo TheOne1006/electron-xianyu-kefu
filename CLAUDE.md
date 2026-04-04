@@ -248,6 +248,8 @@ logger.info('Server started')
 - TypeScript 5.9.3 + electron-store 10.1.0, consola 3.4.2 (032-document-store-integration)
 - electron-store (documents.json) (032-document-store-integration)
 - N/A（无数据结构变更） (033-fix-image-hotlink)
+- TypeScript 5.9.3 + React 19.2.1, Vite 7.2.6 (001-pages-ux-polish)
+- 无变更（electron-store 保持不变） (001-pages-ux-polish)
 
 - TypeScript 5.9.3 + vitest 4.1.2, electron-store（mocked via mock-electron-store.ts） (012-improve-store-test-coverage)
 - N/A（测试使用 mock） (012-improve-store-test-coverage)
