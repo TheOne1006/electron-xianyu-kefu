@@ -55,7 +55,7 @@ export function setMainWindow(win: BrowserWindow): void {
 }
 
 /** 创建闲鱼浏览器窗口 */
-export function createBrowserWindow(appConfig: AppConfig): BrowserWindow {
+export function createXYBrowserWindow(appConfig: AppConfig): BrowserWindow {
   const bw = createWindow({
     width: 1280,
     height: 800,
@@ -84,6 +84,11 @@ export function createBrowserWindow(appConfig: AppConfig): BrowserWindow {
     url = 'https://goofish.com'
   }
   bw.loadURL(url)
+  bw.on('close', () => {
+    browserWindowInstance = null
+    notifyMainWindow('closed')
+  })
+  notifyMainWindow('running')
   browserWindowInstance = bw
   return bw
 }
@@ -98,4 +103,24 @@ export function sendToBrowser(channel: string, data: unknown): void {
   if (browserWindowInstance && !browserWindowInstance.isDestroyed()) {
     browserWindowInstance.webContents.send(channel, data)
   }
+}
+
+/** 通知主窗口闲鱼浏览器状态变更 */
+function notifyMainWindow(status: 'running' | 'closed'): void {
+  const mainWin = getMainWindow()
+  if (mainWin && !mainWin.isDestroyed()) {
+    mainWin.webContents.send('xy-browser:status', status)
+  }
+}
+
+/** 关闭闲鱼浏览器窗口 */
+export function closeXYBrowserWindow(): void {
+  if (browserWindowInstance && !browserWindowInstance.isDestroyed()) {
+    browserWindowInstance.close()
+  }
+}
+
+/** 查询闲鱼浏览器窗口是否在运行 */
+export function isXYBrowserRunning(): boolean {
+  return browserWindowInstance !== null && !browserWindowInstance.isDestroyed()
 }

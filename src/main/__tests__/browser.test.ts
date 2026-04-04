@@ -22,7 +22,7 @@ vi.mock('electron', () => ({
   shell: { openExternal: vi.fn() }
 }))
 
-import { createBrowserWindow, getBrowserWindow, sendToBrowser } from '../browser'
+import { createXYBrowserWindow, getBrowserWindow, sendToBrowser } from '../browser'
 import type { AppConfig } from '../../shared/types'
 
 const defaultConfig: AppConfig = {
@@ -47,34 +47,34 @@ beforeEach(() => {
   mockBrowserWindowInstance.isDestroyed = vi.fn().mockReturnValue(false)
 })
 
-describe('createBrowserWindow', () => {
+describe('createXYBrowserWindow', () => {
   it('加载配置中的 browserUrl', () => {
-    createBrowserWindow(defaultConfig)
+    createXYBrowserWindow(defaultConfig)
     expect(mockBrowserWindowInstance.loadURL).toHaveBeenCalledWith('https://goofish.com')
   })
 
   it('URL 缺少协议时自动补全 https://', () => {
     const config = { ...defaultConfig, browserUrl: 'goofish.com' }
-    createBrowserWindow(config)
+    createXYBrowserWindow(config)
     expect(mockBrowserWindowInstance.loadURL).toHaveBeenCalledWith('https://goofish.com')
   })
 
   it('browserUrl 为空时使用默认值', () => {
     const config = { ...defaultConfig, browserUrl: '' }
-    createBrowserWindow(config)
+    createXYBrowserWindow(config)
     expect(mockBrowserWindowInstance.loadURL).toHaveBeenCalledWith('https://goofish.com')
   })
 
   it('自定义 URL 正确加载', () => {
     const config = { ...defaultConfig, browserUrl: 'https://custom.example.com' }
-    createBrowserWindow(config)
+    createXYBrowserWindow(config)
     expect(mockBrowserWindowInstance.loadURL).toHaveBeenCalledWith('https://custom.example.com')
   })
 })
 
 describe('getBrowserWindow', () => {
   it('创建窗口后返回实例', () => {
-    createBrowserWindow(defaultConfig)
+    createXYBrowserWindow(defaultConfig)
     const win = getBrowserWindow()
     expect(win).toBeDefined()
     expect(win).not.toBeNull()
@@ -83,14 +83,14 @@ describe('getBrowserWindow', () => {
 
 describe('sendToBrowser', () => {
   it('窗口存在且未销毁时通过 webContents.send 发送消息', () => {
-    createBrowserWindow(defaultConfig)
+    createXYBrowserWindow(defaultConfig)
     // mock isDestroyed 返回 false（默认行为）
     sendToBrowser('test-channel', { data: 'hello' })
     expect(mockWebContents.send).toHaveBeenCalledWith('test-channel', { data: 'hello' })
   })
 
   it('窗口已销毁时不发送消息', () => {
-    createBrowserWindow(defaultConfig)
+    createXYBrowserWindow(defaultConfig)
     // 模拟窗口已销毁
     mockBrowserWindowInstance.isDestroyed = () => true
     mockWebContents.send.mockClear()
