@@ -39,10 +39,17 @@ runs:
         if gh release view "${TAG}" >/dev/null 2>&1; then
           echo "Release ${TAG} already exists, skipping creation"
         else
-          gh release create "${TAG}" \
+          if ! gh release create "${TAG}" \
             --title "${TAG}" \
             --notes "自动发布 ${TAG}" \
-            --target main
+            --target main 2>/dev/null; then
+            if gh release view "${TAG}" >/dev/null 2>&1; then
+              echo "Release ${TAG} created by another workflow"
+            else
+              echo "Failed to create release ${TAG}" >&2
+              exit 1
+            fi
+          fi
         fi
 
     - name: 构建 injected 脚本
