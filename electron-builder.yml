@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.electron.xianyu-kefu
 productName: 闲鱼客服自动回复助手
 directories:
   buildResources: build
@@ -19,6 +19,9 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  identity: Developer ID Application
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
