@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { consola } from 'consola'
 import { getAppConfig, saveAppConfig } from './stores/app-config-store'
-import { createBrowserWindow } from './browser'
+import { createXYBrowserWindow, closeXYBrowserWindow, isXYBrowserRunning } from './browser'
 import { handleNewUserMessage } from './business/agent'
 import { dequeue, enqueue } from './stores/reply-queue'
 import { AgentKey, AgentConfig, Conversation, Product, AppConfig } from '../shared/types'
@@ -74,9 +74,18 @@ export function registerIpcHandlers(): void {
   })
 
   // ─── Browser / Agent ─────────────────────────────────────
-  ipcMain.handle('browser:launch', (_event, config: AppConfig) => {
-    createBrowserWindow(config)
+  ipcMain.handle('xy-browser:launch', (_event, config: AppConfig) => {
+    createXYBrowserWindow(config)
     return ok(null)
+  })
+
+  ipcMain.handle('xy-browser:close', () => {
+    closeXYBrowserWindow()
+    return ok(null)
+  })
+
+  ipcMain.handle('xy-browser:getStatus', () => {
+    return ok(isXYBrowserRunning())
   })
 
   ipcMain.handle('conversation:upsert', async (_event, data: Conversation) => {

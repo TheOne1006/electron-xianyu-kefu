@@ -332,13 +332,29 @@ describe('ipc-handlers', () => {
     })
   })
 
-  describe('browser:launch', () => {
+  describe('xy-browser:launch', () => {
     it('handler 已注册', () => {
       const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const launchHandler = calls.find((call) => call[0] === 'browser:launch')
+      const launchHandler = calls.find((call) => call[0] === 'xy-browser:launch')
       expect(launchHandler).toBeDefined()
-      // 注意: createBrowserWindow 使用 new BrowserWindow()，mock 不支持构造函数测试
+      // 注意: createXYBrowserWindow 使用 new BrowserWindow()，mock 不支持构造函数测试
       // 实际调用会失败，因为 mock BrowserWindow 不是真正的构造函数
+    })
+  })
+
+  describe('xy-browser:close', () => {
+    it('handler 已注册', () => {
+      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
+      const handler = calls.find((call) => call[0] === 'xy-browser:close')
+      expect(handler).toBeDefined()
+    })
+  })
+
+  describe('xy-browser:getStatus', () => {
+    it('handler 已注册', () => {
+      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
+      const handler = calls.find((call) => call[0] === 'xy-browser:getStatus')
+      expect(handler).toBeDefined()
     })
   })
 
