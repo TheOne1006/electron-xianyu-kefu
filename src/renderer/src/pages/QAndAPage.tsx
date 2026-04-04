@@ -29,7 +29,7 @@ const qaList: QAItem[] = [
   {
     question: '如何收集闲鱼商品信息？',
     answer:
-      '打开浏览器后，进入你的宝贝详情页，页面右下角会出现蓝色的 📦 收集产品按钮，点击即可自动采集商品信息（标题、图片、描述、价格等）。采集后返回产品页面即可查看。'
+      '打开浏览器后，进入你的宝贝详情页，页面右下角会出现蓝色的收集产品按钮，点击即可自动采集商品信息（标题、图片、描述、价格等）。采集后返回产品页面即可查看。'
   },
   {
     question: '自动回复是怎么工作的？',
@@ -44,7 +44,7 @@ const qaList: QAItem[] = [
   {
     question: '如何让 AI 人工接管对话？',
     answer:
-      '当买家发送"。"（句号，可在设置中自定义）时，系统会进入人工接管模式，停止自动回复。你也可以点击浏览器页面上的停止按钮来暂停自动回复。'
+      '当买家发送「。」（句号，可在设置中自定义）时，系统会进入人工接管模式，停止自动回复。你也可以点击浏览器页面上的停止按钮来暂停自动回复。'
   },
   {
     question: '安全过滤是做什么的？',
@@ -70,6 +70,7 @@ const qaList: QAItem[] = [
 
 export function QAndAPage(): React.JSX.Element {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   const toggleItem = (index: number): void => {
     setExpandedIndex(expandedIndex === index ? null : index)
@@ -89,52 +90,56 @@ export function QAndAPage(): React.JSX.Element {
         <h2
           style={{
             fontSize: 'var(--text-h1)',
+            fontWeight: 600,
             color: 'var(--text-primary)',
-            marginBottom: 'var(--space-1)'
-          }}
-        >
-          Q&A
-        </h2>
-        <p
-          style={{
-            fontSize: 'var(--text-body)',
-            color: 'var(--text-secondary)',
             marginBottom: 'var(--space-6)'
           }}
         >
           常见问题解答
-        </p>
+        </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
           {qaList.map((item, index) => {
             const isExpanded = expandedIndex === index
+            const isHovered = hoveredIndex === index && !isExpanded
             return (
               <div
                 key={index}
                 style={{
                   backgroundColor: 'var(--bg-surface)',
                   borderRadius: 'var(--radius-md)',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  border: `1px solid ${isExpanded ? 'var(--brand-primary)' : isHovered ? 'var(--border-active)' : 'var(--border-default)'}`,
+                  transition: 'border-color 200ms ease-in-out'
                 }}
               >
                 <button
                   onClick={() => toggleItem(index)}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`qa-answer-${index}`}
                   style={{
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: 'var(--space-3) var(--space-4)',
-                    backgroundColor: isExpanded ? 'var(--bg-elevated)' : 'transparent',
+                    backgroundColor: isExpanded
+                      ? 'var(--bg-elevated)'
+                      : isHovered
+                        ? 'var(--bg-elevated)'
+                        : 'transparent',
                     border: 'none',
-                    color: 'var(--text-primary)',
+                    color: isExpanded ? 'var(--brand-primary)' : 'var(--text-primary)',
                     cursor: 'pointer',
                     fontSize: 'var(--text-body)',
+                    fontWeight: isExpanded ? 600 : 400,
                     textAlign: 'left',
-                    transition: 'background-color var(--duration-fast) var(--ease-default)'
+                    transition: 'background-color 200ms ease-in-out, color 200ms ease-in-out'
                   }}
                 >
-                  <span>{item.question}</span>
+                  <span style={{ lineHeight: 'var(--leading-relaxed)' }}>{item.question}</span>
                   <svg
                     width="16"
                     height="16"
@@ -148,20 +153,35 @@ export function QAndAPage(): React.JSX.Element {
                       flexShrink: 0,
                       marginLeft: 'var(--space-3)',
                       transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform var(--duration-fast) var(--ease-default)',
-                      color: 'var(--text-secondary)'
+                      transition: 'transform 200ms ease-in-out',
+                      color: isExpanded ? 'var(--brand-primary)' : 'var(--text-secondary)'
                     }}
                   >
                     <path d="M6 9l6 6 6-6" />
                   </svg>
                 </button>
-                {isExpanded && (
-                  <div
-                    style={{
-                      padding: '0 var(--space-4) var(--space-4)',
-                      paddingLeft: 'var(--space-4)'
-                    }}
-                  >
+                {/* 回答区域 */}
+                <div
+                  id={`qa-answer-${index}`}
+                  role="region"
+                  aria-labelledby={`qa-question-${index}`}
+                  style={{
+                    maxHeight: isExpanded ? '500px' : '0',
+                    overflow: 'hidden',
+                    transition: 'max-height 250ms ease-in-out'
+                  }}
+                >
+                  <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '2px',
+                        backgroundColor: 'var(--brand-primary)',
+                        borderRadius: '1px',
+                        marginBottom: 'var(--space-3)',
+                        opacity: 0.5
+                      }}
+                    />
                     <p
                       style={{
                         fontSize: 'var(--text-body)',
@@ -174,7 +194,7 @@ export function QAndAPage(): React.JSX.Element {
                       {item.answer}
                     </p>
                   </div>
-                )}
+                </div>
               </div>
             )
           })}

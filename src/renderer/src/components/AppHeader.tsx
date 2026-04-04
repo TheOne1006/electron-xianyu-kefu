@@ -9,7 +9,9 @@ const pageTitles: Record<string, string> = {
   '/products': '产品',
   '/agent-config': 'Agent',
   '/conversations': '对话',
-  '/documents': '文档库'
+  '/documents': '文档库',
+  '/quick-start': '快速开始',
+  '/q-and-a': 'Q&A'
 }
 
 export function AppHeader(): React.JSX.Element {

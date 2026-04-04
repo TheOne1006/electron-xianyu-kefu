@@ -88,12 +88,11 @@ export function DocumentsPage(): React.JSX.Element {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           alignItems: 'center',
           marginBottom: 'var(--space-4)'
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 600 }}>文档库</h2>
         <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
           新增文档
         </button>

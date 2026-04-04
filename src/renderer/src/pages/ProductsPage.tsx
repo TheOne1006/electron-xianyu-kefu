@@ -104,18 +104,6 @@ export function ProductsPage(): React.JSX.Element {
         padding: 'var(--space-4)'
       }}
     >
-      {/* 头部 */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 'var(--space-4)'
-        }}
-      >
-        <h2 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 600 }}>产品列表</h2>
-      </div>
-
       {/* 表格 */}
       {products.length === 0 ? (
         <div
