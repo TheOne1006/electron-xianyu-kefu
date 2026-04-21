@@ -26,6 +26,8 @@ export interface AppConfig {
   browserUrl: string
   safetyFilterBlockedKeywords: string[]
   safetyFilterReplacement: string
+  /** 订单通知 Webhook URL（支持 <title> 模板变量替换产品名） */
+  orderWebhookUrl?: string
 }
 
 /** 意图分类配置 */
@@ -45,6 +47,14 @@ export interface CardInfo {
   href: string
 }
 
+/** 支付卡片信息 */
+export interface PaymentInfo {
+  /** 卡片标题，如 "我已付款，等待你发货" */
+  title: string
+  /** 卡片描述，如 "请包装好商品..." */
+  description: string
+}
+
 /** 闲鱼聊天消息（DOM 层面的消息结构） */
 export interface ChatMessage {
   type: 'text' | 'image' | 'card'
@@ -53,6 +63,7 @@ export interface ChatMessage {
   content?: string
   cardInfo?: CardInfo
   imageUrl?: string
+  paymentInfo?: PaymentInfo
 }
 
 /** 聊天会话信息 */
@@ -92,8 +103,12 @@ export interface Product {
   mainImageUrl: string
   /** 关联的文档 key 列表（仅引用标题，不存实际内容） */
   documentKeys: string[]
+  /** 是否启用自动发货 */
+  autoDeliver?: boolean
+  /** 自动发货内容（固定文本） */
+  autoDeliverContent?: string
   /** 动态扩展属性 */
-  [key: string]: string | number | string[] | undefined
+  [key: string]: string | number | string[] | undefined | boolean
 }
 
 // ============================================================
