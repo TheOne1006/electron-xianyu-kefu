@@ -11,6 +11,7 @@ import { classifyIntent, mapIntentToAgent } from './intent-router'
 import { runAgent } from './agent-runner'
 import { enqueue, getFirst as getReplyQueueFirst, removeByChatId } from '../stores/reply-queue'
 import { pushReplyToInjector } from '../browser'
+import { handlePaymentEvent } from './payment-handler'
 import { consola } from 'consola'
 
 const logger = consola.withTag('agent')
@@ -57,6 +58,13 @@ export async function handleNewUserMessage(data: Conversation): Promise<void> {
   // 只保留用户发送的文本消息（type=text, 非 self, 有内容）
   const lastMsg = messages[messages.length - 1]
   const allow = lastMsg.type === 'text' && !lastMsg.isSelf && lastMsg.content?.trim()
+
+  // 支付事件拦截（支付卡片 type='card' + paymentInfo，不满足 allow 条件）
+  if (lastMsg.type === 'card' && lastMsg.paymentInfo) {
+    await handlePaymentEvent(chatInfo, lastMsg.paymentInfo)
+    return
+  }
+
   if (!allow) return
 
   // ── 3. 获取 商品信息 ────────────────────────────────

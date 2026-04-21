@@ -15,6 +15,7 @@ const mockGetReplyQueueFirst = vi.fn<() => { chatId: string; replyText: string }
 const mockRemoveByChatId = vi.fn<(chatId: string) => boolean>()
 const mockGetConversationById = vi.fn()
 const mockGetProductById = vi.fn()
+const mockHandlePaymentEvent = vi.fn<(...args: unknown[]) => Promise<void>>()
 
 // Mock conversation-store
 vi.mock('../../stores/conversation-store', () => ({
@@ -55,6 +56,11 @@ vi.mock('../../stores/product-store', () => ({
   getById: (...args: unknown[]) => mockGetProductById(...args)
 }))
 
+// Mock payment-handler
+vi.mock('../../business/payment-handler', () => ({
+  handlePaymentEvent: (...args: unknown[]) => mockHandlePaymentEvent(...args)
+}))
+
 import { handleNewUserMessage, getReply } from '../../../main/business/agent'
 import type { Conversation, ChatInfo, ChatMessage } from '../../../shared/types'
 
@@ -81,6 +87,7 @@ beforeEach(() => {
   mockEnqueue.mockReturnValue({ success: true })
   mockPushReplyToInjector.mockResolvedValue(false)
   mockRemoveByChatId.mockReturnValue(false)
+  mockHandlePaymentEvent.mockResolvedValue(undefined)
 })
 
 describe('handleNewUserMessage', () => {
@@ -146,6 +153,55 @@ describe('handleNewUserMessage', () => {
     const packet = createTestPacket('便宜点')
     packet.messages[0].type = 'image'
     await handleNewUserMessage(packet)
+    expect(mockClassifyIntent).not.toHaveBeenCalled()
+  })
+
+  it('支付卡片消息拦截后调用 handlePaymentEvent，不走 AI 流程', async () => {
+    const chatInfo: ChatInfo = {
+      userName: '测试用户',
+      itemId: 'item123',
+      isMyProduct: true
+    }
+    const messages: ChatMessage[] = [
+      {
+        type: 'card',
+        sender: '系统通知',
+        isSelf: false,
+        cardInfo: { title: '', price: '', href: '' },
+        paymentInfo: { title: '我已付款，等待你发货', description: '请包装好商品' }
+      }
+    ]
+    const packet: Conversation = { chatInfo, messages }
+
+    await handleNewUserMessage(packet)
+
+    expect(mockHandlePaymentEvent).toHaveBeenCalledWith(chatInfo, {
+      title: '我已付款，等待你发货',
+      description: '请包装好商品'
+    })
+    expect(mockClassifyIntent).not.toHaveBeenCalled()
+    expect(mockRunAgent).not.toHaveBeenCalled()
+  })
+
+  it('普通 card 消息不触发支付拦截', async () => {
+    const chatInfo: ChatInfo = {
+      userName: '测试用户',
+      itemId: 'item123',
+      isMyProduct: true
+    }
+    const messages: ChatMessage[] = [
+      {
+        type: 'card',
+        sender: '买家',
+        isSelf: false,
+        cardInfo: { title: '商品卡片', price: '¥99', href: 'https://example.com' }
+      }
+    ]
+    const packet: Conversation = { chatInfo, messages }
+
+    await handleNewUserMessage(packet)
+
+    expect(mockHandlePaymentEvent).not.toHaveBeenCalled()
     expect(mockClassifyIntent).not.toHaveBeenCalled()
   })
 })
