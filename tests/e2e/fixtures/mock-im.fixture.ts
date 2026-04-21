@@ -26,7 +26,8 @@ export interface MockIMPage {
   evaluate: <T>(js: string) => Promise<T>
   getCallLog: () => Promise<CallLogEntry[]>
   clearCallLog: () => Promise<void>
-  triggerTick: () => Promise<void>
+  triggerDomChange: () => Promise<void>
+  sendReply: (chatId: string, replyText: string) => Promise<{ success: boolean; reason?: string }>
   cleanup: () => void
 }
 
@@ -41,7 +42,7 @@ export interface MockIMPage {
  */
 export async function createMockIMPage(): Promise<MockIMPage> {
   const win = new BrowserWindow({
-    show: false,
+    show: true,
     width: 1280,
     height: 800,
     webPreferences: {
@@ -75,8 +76,15 @@ export async function createMockIMPage(): Promise<MockIMPage> {
     await evaluate('if (window.__mockCallLog) { window.__mockCallLog.length = 0 }')
   }
 
-  const triggerTick = async (): Promise<void> => {
-    await evaluate('window.__testRobot.triggerTick()')
+  const triggerDomChange = async (): Promise<void> => {
+    await evaluate('window.__testRobot.triggerDomChange()')
+  }
+
+  const sendReply = async (
+    chatId: string,
+    replyText: string
+  ): Promise<{ success: boolean; reason?: string }> => {
+    return evaluate(`window.__testRobot.sendReply('${chatId}', ${JSON.stringify(replyText)})`)
   }
 
   const cleanup = (): void => {
@@ -90,7 +98,8 @@ export async function createMockIMPage(): Promise<MockIMPage> {
     evaluate,
     getCallLog,
     clearCallLog,
-    triggerTick,
+    triggerDomChange,
+    sendReply,
     cleanup
   }
 }

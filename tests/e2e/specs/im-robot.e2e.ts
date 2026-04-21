@@ -33,7 +33,7 @@ describe('ImRobot E2E', () => {
       await page.evaluate('MockIM.simulateIncomingMessage("这个多少钱？")')
 
       // 手动触发 tick（更快更可控）
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 等待 conversation.upsert 被调用
       await waitForCall(page, 'electronAPI', 'conversation.upsert', 3000)
@@ -53,7 +53,7 @@ describe('ImRobot E2E', () => {
     it('推送的消息列表应包含最新消息', async () => {
       await page.clearCallLog()
       await page.evaluate('MockIM.simulateIncomingMessage("还在吗？")')
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       await waitForCall(page, 'electronAPI', 'conversation.upsert', 3000)
 
@@ -72,7 +72,7 @@ describe('ImRobot E2E', () => {
       // 切换到会话 2（用户张三）
       await page.evaluate('MockIM.selectConversation(1)')
       await page.evaluate('MockIM.simulateIncomingMessage(" MacBook 多少钱？")')
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       await waitForCall(page, 'electronAPI', 'conversation.upsert', 3000)
 
@@ -94,7 +94,7 @@ describe('ImRobot E2E', () => {
 
       // 会话 1 默认有 3 条未读
       // 触发 tick
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 应该点击未读会话项（simulateClick）
       await waitForCall(page, 'electronAPI', 'simulateClick', 3000)
@@ -111,7 +111,7 @@ describe('ImRobot E2E', () => {
       await page.evaluate('MockIM.setUnread(0, 0)')
       await page.evaluate('MockIM.setUnread(2, 1)')
 
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 系统消息处理：点击 → cleanup
       await waitForCall(page, 'electronAPI', 'simulateClick', 3000)
@@ -127,7 +127,7 @@ describe('ImRobot E2E', () => {
         'MockIM.addMessage({ sender: "买家小明", isSelf: false, type: "text", content: "新消息测试" })'
       )
 
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 应该推送新消息
       await waitForCall(page, 'electronAPI', 'conversation.upsert', 3000)
@@ -151,7 +151,7 @@ describe('ImRobot E2E', () => {
       `)
 
       // 触发 tick → ImRobot 会先尝试 dequeue
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 等待回复发送流程：simulateClick → simulateChineseInput → simulateEnterKey
       await waitForCallCondition(
@@ -196,7 +196,7 @@ describe('ImRobot E2E', () => {
         MockIM.setUnread(3, 0)
       `)
 
-      await page.triggerTick()
+      await page.triggerDomChange()
 
       // 等待一下确保没有异步操作
       await new Promise((r) => setTimeout(r, 500))
