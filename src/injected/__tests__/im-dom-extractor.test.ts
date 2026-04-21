@@ -163,7 +163,9 @@ describe('ImDomExtractor', () => {
       expect(messages[0].type).toBe('card')
       expect(messages[0].paymentInfo).toBeDefined()
       expect(messages[0].paymentInfo?.title).toBe('我已付款，等待你发货')
-      expect(messages[0].paymentInfo?.description).toBe('请包装好商品，并按我在闲鱼上提供的地址发货')
+      expect(messages[0].paymentInfo?.description).toBe(
+        '请包装好商品，并按我在闲鱼上提供的地址发货'
+      )
       expect(messages[0].sender).toBe('系统通知')
       expect(messages[0].isSelf).toBe(false)
     })

@@ -200,9 +200,7 @@ export function ConfigForm(): React.JSX.Element {
             onChange={(e) => handleChange('orderWebhookUrl', e.target.value)}
             placeholder="https://example.com/notify?product=<title>"
           />
-          <p className="form-hint">
-            检测到支付事件时调用此 URL，{'<title>'} 将替换为商品名称
-          </p>
+          <p className="form-hint">检测到支付事件时调用此 URL，{'<title>'} 将替换为商品名称</p>
         </div>
       </section>
 

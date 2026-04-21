@@ -258,7 +258,9 @@ export function ProductsPage(): React.JSX.Element {
                         已启用
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>-</span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>
+                        -
+                      </span>
                     )}
                   </td>
                   <td
