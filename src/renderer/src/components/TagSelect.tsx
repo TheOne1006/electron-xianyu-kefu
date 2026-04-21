@@ -63,12 +63,9 @@ export function TagSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const filtered = options.filter(
-    (opt) =>
-      !selectedKeys.includes(opt.key) &&
-      opt.label.toLowerCase().includes(inputValue.toLowerCase())
+  const filtered = options.filter((opt) =>
+    opt.label.toLowerCase().includes(inputValue.toLowerCase())
   )
-  const selectedSet = new Set(selectedKeys)
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
@@ -178,7 +175,7 @@ export function TagSelect({
             </div>
           ) : (
             filtered.map((opt) => {
-              const isSelected = selectedSet.has(opt.key)
+              const isSelected = selectedKeys.includes(opt.key)
               return (
                 <div
                   key={opt.key}
