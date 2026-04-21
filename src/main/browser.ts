@@ -2,6 +2,9 @@ import { BrowserWindow } from 'electron'
 import { join } from 'path'
 import type { AppConfig } from '../shared/types'
 import type { WindowConfig } from './types'
+import { consola } from 'consola'
+
+const logger = consola.withTag('browser')
 
 /**
  * 通用窗口创建工厂
@@ -123,4 +126,38 @@ export function closeXYBrowserWindow(): void {
 /** 查询闲鱼浏览器窗口是否在运行 */
 export function isXYBrowserRunning(): boolean {
   return browserWindowInstance !== null && !browserWindowInstance.isDestroyed()
+}
+
+/**
+ * 向注入脚本推送回复指令
+ *
+ * 通过 webContents.executeJavaScript() 调用注入脚本中注册的 __robotCommands.sendReply()。
+ * 如果注入脚本忙（返回 success: false），回退到 reply-queue 入队。
+ */
+export async function pushReplyToInjector(chatId: string, replyText: string): Promise<boolean> {
+  const bw = getBrowserWindow()
+  if (!bw || bw.isDestroyed()) {
+    logger.warn('[推送] 浏览器窗口不存在')
+    return false
+  }
+
+  try {
+    const safeChatId = chatId.replace(/'/g, "\\'")
+    const safeReplyText = JSON.stringify(replyText)
+
+    const result = await bw.webContents.executeJavaScript(
+      `window.__robotCommands?.sendReply('${safeChatId}', ${safeReplyText})`
+    )
+
+    if (result?.success) {
+      logger.info(`[推送] 回复已直接推送: ${chatId}`)
+      return true
+    }
+
+    logger.info(`[推送] 注入脚本忙 (${result?.reason || 'unknown'})，将回退到队列`)
+    return false
+  } catch (err) {
+    logger.warn(`[推送] executeJavaScript 失败: ${err}`)
+    return false
+  }
 }

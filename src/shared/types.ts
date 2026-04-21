@@ -183,7 +183,10 @@ export interface InjectedElectronAPI {
 
 /** 主进程推送指令到注入脚本的命令接口 */
 export interface RobotCommands {
-  sendReply(chatId: string, replyText: string): Promise<{
+  sendReply(
+    chatId: string,
+    replyText: string
+  ): Promise<{
     success: boolean
     reason?: string
     state?: string

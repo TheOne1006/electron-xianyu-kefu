@@ -220,43 +220,41 @@ export class ImRobot {
 
   /** 注册全局命令接口（供主进程通过 executeJavaScript 调用） */
   private registerCommands(): void {
-    const self = this
-
     const commands: RobotCommands = {
-      async sendReply(chatId: string, replyText: string): Promise<CommandResult> {
-        if (self.state !== 'IDLE') {
-          return { success: false, reason: 'busy', state: self.state }
+      sendReply: async (chatId: string, replyText: string): Promise<CommandResult> => {
+        if (this.state !== 'IDLE') {
+          return { success: false, reason: 'busy', state: this.state }
         }
 
-        self.state = 'PROCESSING_REPLY'
-        self.lastActivity = Date.now()
+        this.state = 'PROCESSING_REPLY'
+        this.lastActivity = Date.now()
 
         try {
-          const chatInfo = await self.getChatInfoById(chatId)
+          const chatInfo = await this.getChatInfoById(chatId)
           if (!chatInfo) {
-            self.state = 'IDLE'
+            this.state = 'IDLE'
             return { success: false, reason: 'chat_not_found' }
           }
 
           const chatList = ImDomExtractor.getChatList()
-          const matchedChat = self.findMatchingChatItem(chatList, chatInfo.itemId)
+          const matchedChat = this.findMatchingChatItem(chatList, chatInfo.itemId)
           if (!matchedChat) {
-            self.state = 'IDLE'
+            this.state = 'IDLE'
             return { success: false, reason: 'chat_item_not_found' }
           }
 
-          await self.executeReply(chatId, replyText, matchedChat)
-          self.cleanup()
+          await this.executeReply(chatId, replyText, matchedChat)
+          this.cleanup()
           return { success: true }
         } catch (err) {
           logger.error('[命令] sendReply 执行失败:', err)
-          self.state = 'IDLE'
+          this.state = 'IDLE'
           return { success: false, reason: 'execution_error' }
         }
       },
 
-      getStatus() {
-        return { state: self.state, lastActivity: self.lastActivity }
+      getStatus: () => {
+        return { state: this.state, lastActivity: this.lastActivity }
       }
     }
 

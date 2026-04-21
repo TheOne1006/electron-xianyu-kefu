@@ -10,6 +10,7 @@ import { getAppConfig } from '../stores/app-config-store'
 import { classifyIntent, mapIntentToAgent } from './intent-router'
 import { runAgent } from './agent-runner'
 import { enqueue, getFirst as getReplyQueueFirstChatId } from '../stores/reply-queue'
+import { pushReplyToInjector } from '../browser'
 import { consola } from 'consola'
 
 const logger = consola.withTag('agent')
@@ -88,8 +89,12 @@ export async function handleNewUserMessage(data: Conversation): Promise<void> {
 
     // ── 7. 记录 AI 回复到会话 ────────────────────────────────
     appendMessage(chatId, replyText)
-    // ── 8. 存入待发队列（供注入层轮询获取） ────────────────────────────────
-    enqueue(chatId)
+    // ── 8. 尝试主动推送回复到注入脚本 ────────────────────────────────
+    const pushed = await pushReplyToInjector(chatId, replyText)
+    if (!pushed) {
+      // 推送失败（注入脚本忙或窗口不存在），回退到队列
+      enqueue(chatId)
+    }
     logger.info(`[回复成功] ${replyText.slice(0, 50)}...`)
   } catch (err) {
     logger.error(`[回复失败] ${err instanceof Error ? err.message : String(err)}`)
