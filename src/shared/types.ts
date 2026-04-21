@@ -176,3 +176,17 @@ export interface InjectedElectronAPI {
     list: () => Promise<IpcResult<Product[]>>
   }
 }
+
+// ============================================================
+// J. 注入脚本全局命令接口 — 主进程通过 executeJavaScript 调用
+// ============================================================
+
+/** 主进程推送指令到注入脚本的命令接口 */
+export interface RobotCommands {
+  sendReply(chatId: string, replyText: string): Promise<{
+    success: boolean
+    reason?: string
+    state?: string
+  }>
+  getStatus(): { state: string; lastActivity: number }
+}
