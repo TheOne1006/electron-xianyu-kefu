@@ -154,6 +154,15 @@ export function ProductsPage(): React.JSX.Element {
                 </th>
                 <th
                   style={{
+                    textAlign: 'center',
+                    padding: 'var(--space-2) var(--space-3)',
+                    fontWeight: 600
+                  }}
+                >
+                  自动发货
+                </th>
+                <th
+                  style={{
                     textAlign: 'right',
                     padding: 'var(--space-2) var(--space-3)',
                     fontWeight: 600
@@ -233,6 +242,23 @@ export function ProductsPage(): React.JSX.Element {
                       </div>
                     ) : (
                       '-'
+                    )}
+                  </td>
+                  <td style={{ padding: 'var(--space-2) var(--space-3)', textAlign: 'center' }}>
+                    {product.autoDeliver ? (
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          fontSize: 'var(--text-xs)',
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor: 'rgba(82, 196, 26, 0.1)',
+                          color: '#52c41a'
+                        }}
+                      >
+                        已启用
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-xs)' }}>-</span>
                     )}
                   </td>
                   <td
@@ -379,6 +405,10 @@ function ProductModal({
   const [title, setTitle] = useState(initialProduct?.title ?? '')
   const [content, setContent] = useState(initialProduct?.content ?? '')
   const [selectedDocs, setSelectedDocs] = useState<string[]>(initialProduct?.documentKeys ?? [])
+  const [autoDeliver, setAutoDeliver] = useState(initialProduct?.autoDeliver ?? false)
+  const [autoDeliverContent, setAutoDeliverContent] = useState(
+    initialProduct?.autoDeliverContent ?? ''
+  )
 
   const handleToggleDoc = (key: string): void => {
     setSelectedDocs((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
@@ -395,7 +425,9 @@ function ProductModal({
         ...initialProduct,
         title: title.trim(),
         content: content.trim() || undefined,
-        documentKeys
+        documentKeys,
+        autoDeliver,
+        autoDeliverContent: autoDeliver ? autoDeliverContent.trim() : undefined
       })
     } else {
       onSave({
@@ -403,7 +435,9 @@ function ProductModal({
         content: content.trim() || undefined,
         documentKeys,
         images: [],
-        mainImageUrl: ''
+        mainImageUrl: '',
+        autoDeliver,
+        autoDeliverContent: autoDeliver ? autoDeliverContent.trim() : undefined
       })
     }
   }
@@ -615,6 +649,37 @@ function ProductModal({
                     </span>
                   </label>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* 自动发货 */}
+          <div style={{ marginBottom: 'var(--space-4)' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2)',
+                cursor: 'pointer',
+                fontSize: 'var(--text-sm)'
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={autoDeliver}
+                onChange={(e) => setAutoDeliver(e.target.checked)}
+              />
+              <span style={{ fontWeight: 500 }}>自动发货</span>
+            </label>
+            {autoDeliver && (
+              <div style={{ marginTop: 'var(--space-2)' }}>
+                <textarea
+                  value={autoDeliverContent}
+                  onChange={(e) => setAutoDeliverContent(e.target.value)}
+                  rows={3}
+                  className="textarea-field"
+                  placeholder="支付成功后自动发送给买家的内容"
+                />
               </div>
             )}
           </div>
