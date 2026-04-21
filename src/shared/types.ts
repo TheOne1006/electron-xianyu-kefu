@@ -158,7 +158,7 @@ export interface InjectedElectronAPI {
 
   // ─── 回复队列 ───────────────────────────────────────────
   replyQueue: {
-    dequeue: () => Promise<IpcResult<{ chatId: string | null }>>
+    dequeue: () => Promise<IpcResult<{ chatId: string | null; replyText: string | null }>>
   }
 
   // ─── 对话操作 ───────────────────────────────────────────

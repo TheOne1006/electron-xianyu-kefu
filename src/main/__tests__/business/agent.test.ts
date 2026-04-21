@@ -11,7 +11,8 @@ const mockGetMainWindow = vi.fn<(...args: unknown[]) => null>()
 const mockSendToRenderer = vi.fn<(...args: unknown[]) => void>()
 const mockEnqueue = vi.fn<(...args: unknown[]) => { success: boolean; error?: string }>()
 const mockPushReplyToInjector = vi.fn<(...args: unknown[]) => Promise<boolean>>()
-const mockGetReplyQueueFirstChatId = vi.fn<() => string | null>()
+const mockGetReplyQueueFirst = vi.fn<() => { chatId: string; replyText: string } | null>()
+const mockRemoveByChatId = vi.fn<(chatId: string) => boolean>()
 const mockGetConversationById = vi.fn()
 const mockGetProductById = vi.fn()
 
@@ -44,8 +45,9 @@ vi.mock('../../browser', () => ({
 
 // Mock reply-queue
 vi.mock('../../stores/reply-queue', () => ({
-  enqueue: (...args: [string]) => mockEnqueue(...args),
-  getFirst: () => mockGetReplyQueueFirstChatId()
+  enqueue: (...args: unknown[]) => mockEnqueue(...args),
+  getFirst: () => mockGetReplyQueueFirst(),
+  removeByChatId: (chatId: string) => mockRemoveByChatId(chatId)
 }))
 
 // Mock product-store
@@ -78,6 +80,7 @@ beforeEach(() => {
   mockRunAgent.mockResolvedValue('好的，可以便宜点')
   mockEnqueue.mockReturnValue({ success: true })
   mockPushReplyToInjector.mockResolvedValue(false)
+  mockRemoveByChatId.mockReturnValue(false)
 })
 
 describe('handleNewUserMessage', () => {
@@ -98,7 +101,7 @@ describe('handleNewUserMessage', () => {
     expect(mockAppendMessage).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
     // 先尝试主动推送，失败后回退到 enqueue
     expect(mockPushReplyToInjector).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
-    expect(mockEnqueue).toHaveBeenCalledWith('test-user-item123')
+    expect(mockEnqueue).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
   })
 
   it('空消息不处理', async () => {
@@ -114,6 +117,15 @@ describe('handleNewUserMessage', () => {
     // runAgent 失败时 appendMessage 不会被调用，因为 agent.ts 中 catch 里没有调用 appendMessage
     // 但函数不会崩溃
     expect(mockAppendMessage).not.toHaveBeenCalled()
+  })
+
+  it('direct push 成功时清除队列中的残留条目', async () => {
+    mockPushReplyToInjector.mockResolvedValue(true)
+    const packet = createTestPacket('便宜点吧')
+    await handleNewUserMessage(packet)
+
+    expect(mockRemoveByChatId).toHaveBeenCalledWith('test-user-item123')
+    expect(mockEnqueue).not.toHaveBeenCalled()
   })
 
   it('最后一条为 AI 消息时不处理也不记录', async () => {
@@ -144,38 +156,20 @@ describe('getReply', () => {
   })
 
   it('队列为空时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue(null)
+    mockGetReplyQueueFirst.mockReturnValue(null)
     const result = getReply()
     expect(result).toBeNull()
   })
 
   it('对话不存在时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
+    mockGetReplyQueueFirst.mockReturnValue({ chatId: 'chat-1', replyText: '你好' })
     mockGetConversationById.mockReturnValue(null)
     const result = getReply()
     expect(result).toBeNull()
   })
 
-  it('对话存在但消息数组为空时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
-    mockGetConversationById.mockReturnValue({
-      chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
-      messages: []
-    })
-    expect(getReply()).toBeNull()
-  })
-
-  it('最后一条消息非AI发送时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
-    mockGetConversationById.mockReturnValue({
-      chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
-      messages: [{ type: 'text', sender: 'u', isSelf: false, content: 'hello' }]
-    })
-    expect(getReply()).toBeNull()
-  })
-
-  it('成功场景返回 chatInfo 和 replyText', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
+  it('成功场景返回 chatInfo 和队列中的 replyText', () => {
+    mockGetReplyQueueFirst.mockReturnValue({ chatId: 'chat-1', replyText: '好的，便宜点' })
     mockGetConversationById.mockReturnValue({
       chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
       messages: [{ type: 'text', sender: 'AI', isSelf: true, content: '好的，便宜点' }]

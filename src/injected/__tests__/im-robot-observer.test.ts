@@ -15,7 +15,9 @@ const mockElectronAPI = {
     .mockResolvedValue({ code: 0, message: '', data: { success: true } }),
   simulateEnterKey: vi.fn().mockResolvedValue({ code: 0, message: '', data: { success: true } }),
   replyQueue: {
-    dequeue: vi.fn().mockResolvedValue({ code: 1, message: 'empty', data: { chatId: null } })
+    dequeue: vi
+      .fn()
+      .mockResolvedValue({ code: 1, message: 'empty', data: { chatId: null, replyText: null } })
   },
   conversation: {
     upsert: vi.fn().mockResolvedValue({ code: 0, message: '', data: null }),
@@ -42,8 +44,7 @@ function setupDOM(html: string, url = 'https://www.goofish.com/im'): void {
   const dom = new JSDOM(html, { url })
   globalThis.document = dom.window.document
   globalThis.window = dom.window as unknown as Window & typeof globalThis
-  globalThis.MutationObserver =
-    dom.window.MutationObserver as unknown as typeof MutationObserver
+  globalThis.MutationObserver = dom.window.MutationObserver as unknown as typeof MutationObserver
   ;(globalThis.window as unknown as Record<string, unknown>).electronAPI = mockElectronAPI
 }
 
@@ -117,10 +118,7 @@ describe('ImRobot Observer 模式', () => {
     robot.state = 'PROCESSING_COLLECT'
 
     const commands = (globalThis.window as unknown as Record<string, unknown>).__robotCommands as {
-      sendReply: (
-        chatId: string,
-        text: string
-      ) => Promise<{ success: boolean; reason?: string }>
+      sendReply: (chatId: string, text: string) => Promise<{ success: boolean; reason?: string }>
     }
     const result = await commands.sendReply('test-chat-id', '测试回复')
     expect(result.success).toBe(false)
@@ -147,10 +145,7 @@ describe('ImRobot Observer 模式', () => {
     await robot.start()
 
     const commands = (globalThis.window as unknown as Record<string, unknown>).__robotCommands as {
-      sendReply: (
-        chatId: string,
-        text: string
-      ) => Promise<{ success: boolean; reason?: string }>
+      sendReply: (chatId: string, text: string) => Promise<{ success: boolean; reason?: string }>
     }
     const result = await commands.sendReply('nonexistent-chat', '测试回复')
     expect(result.success).toBe(false)

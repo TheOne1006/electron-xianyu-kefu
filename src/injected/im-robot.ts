@@ -282,18 +282,13 @@ export class ImRobot {
       const queueResult = await window.electronAPI.replyQueue.dequeue()
       if (queueResult.code !== 0 || !queueResult.data.chatId) return null
 
-      const chatId = queueResult.data.chatId
+      const { chatId, replyText } = queueResult.data
+      if (!replyText) return null
+
       const result = await window.electronAPI.conversation.getById(chatId)
       if (result.code !== 0 || !result.data) return null
 
-      const packet = result.data
-      const messages = packet.messages
-      if (messages.length === 0) return null
-
-      const lastMsg = messages[messages.length - 1]
-      if (!lastMsg.isSelf || !lastMsg.content) return null
-
-      return { chatInfo: packet.chatInfo, replyText: lastMsg.content }
+      return { chatInfo: result.data.chatInfo, replyText }
     } catch (err) {
       logger.error('[状态机] 获取待发回复失败:', err)
       return null

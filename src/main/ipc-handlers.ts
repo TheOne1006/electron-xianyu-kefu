@@ -4,6 +4,7 @@ import { getAppConfig, saveAppConfig } from './stores/app-config-store'
 import { createXYBrowserWindow, closeXYBrowserWindow, isXYBrowserRunning } from './browser'
 import { handleNewUserMessage } from './business/agent'
 import { dequeue, enqueue } from './stores/reply-queue'
+import type { QueueItem } from './stores/reply-queue'
 import { AgentKey, AgentConfig, Conversation, Product, AppConfig } from '../shared/types'
 import type { IpcResult } from '../shared/types'
 
@@ -99,11 +100,11 @@ export function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('reply-queue:dequeue', () => {
-    const chatId = dequeue()
-    if (chatId !== null) {
-      logger.info(`[IPC] 回复队列需要发送给会话: ${chatId}`)
+    const item: QueueItem | null = dequeue()
+    if (item !== null) {
+      logger.info(`[IPC] 回复队列需要发送给会话: ${item.chatId}`)
     }
-    return ok({ chatId })
+    return ok({ chatId: item?.chatId ?? null, replyText: item?.replyText ?? null })
   })
 
   // ─── Agent Config ─────────────────────────────────────
@@ -208,7 +209,7 @@ export function registerIpcHandlers(): void {
         appendConversationMessage(chatId, content)
 
         // 推送到回复队列（幂等：重复 chatId 则失败）
-        const queueResult = enqueue(chatId)
+        const queueResult = enqueue(chatId, content)
         if (!queueResult.success) {
           logger.warn(`[reply-queue:enqueue] 队列推送失败: ${queueResult.error}`)
         }
