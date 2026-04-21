@@ -141,6 +141,24 @@ export class ImDomExtractor {
             href: (linkEl as HTMLAnchorElement)?.href || ''
           }
         })
+      } else if (
+        // 检测支付卡片特征：msg-dx-title + msg-dx-button
+        li.querySelector('[class*="msg-dx-title--"]') &&
+        li.querySelector('[class*="msg-dx-button--"]')
+      ) {
+        const paymentTitle = li.querySelector('[class*="msg-dx-title--"]')
+        const descEl = li.querySelector('[class*="msg-dx-desc--"]')
+
+        messages.push({
+          type: 'card',
+          sender,
+          isSelf,
+          cardInfo: { title: '', price: '', href: '' },
+          paymentInfo: {
+            title: paymentTitle?.textContent?.trim() || '',
+            description: descEl?.textContent?.trim() || ''
+          }
+        })
       } else if (isImageMessage) {
         // 提取图片 URL（排除 avatar 图片）
         const allImgs = li.querySelectorAll('img')
