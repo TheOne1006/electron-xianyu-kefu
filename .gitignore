@@ -8,6 +8,7 @@ resources/*.js
 coverage
 .playwright-mcp
 ui-ux-pro-max
+.superpowers/
 
 
 # 忽略 agnet 
