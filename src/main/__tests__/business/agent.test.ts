@@ -10,6 +10,7 @@ const mockSendToBrowser = vi.fn<(...args: unknown[]) => void>()
 const mockGetMainWindow = vi.fn<(...args: unknown[]) => null>()
 const mockSendToRenderer = vi.fn<(...args: unknown[]) => void>()
 const mockEnqueue = vi.fn<(...args: unknown[]) => { success: boolean; error?: string }>()
+const mockPushReplyToInjector = vi.fn<(...args: unknown[]) => Promise<boolean>>()
 const mockGetReplyQueueFirstChatId = vi.fn<() => string | null>()
 const mockGetConversationById = vi.fn()
 const mockGetProductById = vi.fn()
@@ -37,7 +38,8 @@ vi.mock('../../business/agent-runner', () => ({
 vi.mock('../../browser', () => ({
   sendToBrowser: (...args: [string, unknown]) => mockSendToBrowser(...args),
   getMainWindow: () => mockGetMainWindow(),
-  sendToRenderer: (...args: [string, unknown]) => mockSendToRenderer(...args)
+  sendToRenderer: (...args: [string, unknown]) => mockSendToRenderer(...args),
+  pushReplyToInjector: (...args: unknown[]) => mockPushReplyToInjector(...args)
 }))
 
 // Mock reply-queue
@@ -75,6 +77,7 @@ beforeEach(() => {
   mockMapIntentToAgent.mockReturnValue('price')
   mockRunAgent.mockResolvedValue('好的，可以便宜点')
   mockEnqueue.mockReturnValue({ success: true })
+  mockPushReplyToInjector.mockResolvedValue(false)
 })
 
 describe('handleNewUserMessage', () => {
@@ -93,6 +96,8 @@ describe('handleNewUserMessage', () => {
     )
     // appendMessage 只在 runAgent 成功后被调用，记录 AI 回复
     expect(mockAppendMessage).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
+    // 先尝试主动推送，失败后回退到 enqueue
+    expect(mockPushReplyToInjector).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
     expect(mockEnqueue).toHaveBeenCalledWith('test-user-item123')
   })
 
