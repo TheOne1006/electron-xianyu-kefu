@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useToast } from '../contexts/ToastContext'
+import { TagSelect } from '../components/TagSelect'
 import type { Product } from '@shared/types'
 
 /** 产品表格行：附带关联文档标题列表 */
@@ -412,10 +413,6 @@ function ProductModal({
     initialProduct?.autoDeliverContent ?? ''
   )
 
-  const handleToggleDoc = (key: string): void => {
-    setSelectedDocs((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
-  }
-
   const handleSubmit = (e: React.SyntheticEvent): void => {
     e.preventDefault()
     if (!title.trim()) return
@@ -581,7 +578,7 @@ function ProductModal({
             </div>
           )}
 
-          {/* 关联文档多选 */}
+          {/* 关联文档 */}
           <div style={{ marginBottom: 'var(--space-4)' }}>
             <label
               style={{
@@ -607,51 +604,12 @@ function ProductModal({
                 暂无文档
               </div>
             ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 'var(--space-2)',
-                  maxHeight: 160,
-                  overflow: 'auto',
-                  padding: 'var(--space-2)',
-                  background: 'var(--bg-elevated)',
-                  border: '1px solid var(--border-default)',
-                  borderRadius: 'var(--radius-md)'
-                }}
-              >
-                {Object.entries(allDocuments).map(([key, docContent]) => (
-                  <label
-                    key={key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 'var(--space-2)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--text-sm)'
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedDocs.includes(key)}
-                      onChange={() => handleToggleDoc(key)}
-                      style={{ marginTop: 2 }}
-                    />
-                    <span>
-                      <span style={{ fontWeight: 500 }}>{key}</span>
-                      <span
-                        style={{
-                          color: 'var(--text-secondary)',
-                          marginLeft: 'var(--space-2)',
-                          fontSize: 'var(--text-xs)'
-                        }}
-                      >
-                        {docContent.length > 40 ? docContent.slice(0, 40) + '...' : docContent}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <TagSelect
+                options={Object.keys(allDocuments).map((key) => ({ key, label: key }))}
+                selectedKeys={selectedDocs}
+                onChange={setSelectedDocs}
+                placeholder="搜索并选择关联文档..."
+              />
             )}
           </div>
 
