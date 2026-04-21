@@ -114,11 +114,26 @@
           const conv = TEST_DATA.conversations.find(
             (c) => c.itemId === chatId || (chatId === 'system' && c.type === 'system')
           )
+
+          // 模拟 Agent 已处理完毕：如果回复队列中有该 chatId 的回复，追加 AI 回复消息
+          const replyEntry = TEST_DATA.replyQueue.find(function (r) {
+            return r.chatId === chatId
+          })
+          var allMsgs = msgs.slice()
+          if (replyEntry) {
+            allMsgs.push({
+              sender: '我',
+              isSelf: true,
+              type: 'text',
+              content: replyEntry.replyText
+            })
+          }
+
           return ok({
             chatInfo: conv
               ? { userName: conv.userName, itemId: conv.itemId, isMyProduct: true }
               : { userName: '未知', itemId: null, isMyProduct: false },
-            messages: msgs
+            messages: allMsgs
           })
         }
         return ok(null)

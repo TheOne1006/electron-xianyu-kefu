@@ -38,18 +38,27 @@
 
     const avatar = createAvatarEl(message.isSelf ? '我' : message.sender?.charAt(0) || '?')
 
+    // 内容容器：包含 sender div + message-text div
+    // 匹配 ImDomExtractor 的 sender 提取逻辑：
+    //   avatarEl.nextElementSibling.querySelector('div')
+    const contentWrapper = document.createElement('div')
+    const senderDiv = document.createElement('div')
+    senderDiv.textContent = message.sender || ''
+    contentWrapper.appendChild(senderDiv)
+
     const textDiv = document.createElement('div')
     textDiv.className = 'message-text--mock'
     const span = document.createElement('span')
     span.textContent = message.content || ''
     textDiv.appendChild(span)
+    contentWrapper.appendChild(textDiv)
 
     if (message.isSelf) {
-      row.appendChild(textDiv)
+      row.appendChild(contentWrapper)
       row.appendChild(avatar)
     } else {
       row.appendChild(avatar)
-      row.appendChild(textDiv)
+      row.appendChild(contentWrapper)
     }
 
     return row

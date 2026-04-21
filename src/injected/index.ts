@@ -10,6 +10,10 @@
  */
 import { ImRobot } from './im-robot'
 import { ProductCollector } from './product-collector'
+import { ImDomExtractor } from './im-dom-extractor'
+
+// 暴露类到全局命名空间（便于 E2E 测试和调试）
+export { ImDomExtractor, ImRobot, ProductCollector }
 
 const path = window.location.pathname
 

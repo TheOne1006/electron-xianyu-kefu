@@ -109,12 +109,8 @@ const TEST_DATA = {
     ]
   },
 
-  /** AI 回复队列 — dequeue 时按序返回 */
-  replyQueue: [
-    { chatId: '100001', replyText: '您好，这款手机目前售价5999元，可以小刀，您出多少？' },
-    { chatId: '100002', replyText: '成色非常好，95新以上，一直在保护壳里使用。' },
-    { chatId: '100003', replyText: '可以的，我们在同城可以当面交易，您方便在哪个区域？' }
-  ],
+  /** AI 回复队列 — 初始为空，测试中按需填充 */
+  replyQueue: [],
 
   /** 文档库 */
   documents: {

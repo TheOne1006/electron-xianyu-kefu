@@ -39,7 +39,10 @@
     "build:linux": "electron-vite build && electron-builder --linux",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:e2e": "esbuild tests/e2e/runner.ts --bundle --format=cjs --platform=node --external:electron --outfile=dist/e2e-runner.cjs",
+    "test:e2e": "pnpm build:e2e && electron dist/e2e-runner.cjs",
+    "test:e2e:watch": "pnpm build:e2e && electron dist/e2e-runner.cjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
