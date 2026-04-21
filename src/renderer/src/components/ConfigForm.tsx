@@ -9,7 +9,8 @@ export function ConfigForm(): React.JSX.Element {
     humanTakeoverKeywords: '',
     browserUrl: 'https://goofish.com',
     safetyFilterBlockedKeywords: ['微信', 'QQ', '支付宝转账', '银行卡', '线下交易', '加我'],
-    safetyFilterReplacement: '[安全提醒]请通过平台沟通哦~'
+    safetyFilterReplacement: '[安全提醒]请通过平台沟通哦~',
+    orderWebhookUrl: ''
   })
   const [saving, setSaving] = useState(false)
   const [keywordInput, setKeywordInput] = useState('')
@@ -181,6 +182,27 @@ export function ConfigForm(): React.JSX.Element {
             placeholder="https://goofish.com"
           />
           <p className="form-hint">浏览器窗口启动时加载的网址，留空则使用默认链接</p>
+        </div>
+      </section>
+
+      {/* 订单通知设置 */}
+      <section className="card">
+        <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
+          订单通知设置
+        </h2>
+
+        <div className="form-group" style={{ marginBottom: 0 }}>
+          <label className="form-label">Webhook URL</label>
+          <input
+            type="text"
+            className="input-field"
+            value={config.orderWebhookUrl ?? ''}
+            onChange={(e) => handleChange('orderWebhookUrl', e.target.value)}
+            placeholder="https://example.com/notify?product=<title>"
+          />
+          <p className="form-hint">
+            检测到支付事件时调用此 URL，{'<title>'} 将替换为商品名称
+          </p>
         </div>
       </section>
 
