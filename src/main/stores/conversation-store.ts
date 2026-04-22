@@ -12,8 +12,6 @@ import { consola } from 'consola'
 import type { Conversation } from '../../shared/types'
 import { safeId } from './helper'
 
-import { getById as getProductById } from './product-store'
-
 const logger = consola.withTag('conversation-store')
 
 // ─── Store 实例 ─────────────────────────────────────────────
@@ -36,13 +34,6 @@ export function buildChatId(userName: string, itemId: string): string {
  * 如果已存在则更新
  */
 export function createOrUpdate(packet: Conversation): Conversation {
-  const productId = packet.chatInfo.itemId
-  const product = getProductById(productId)
-  if (!product) {
-    logger.warn(`产品 ${productId} 不存在，不处理对话: ${packet.chatInfo.userName}`)
-    throw new Error(`产品 ${productId} 不存在`)
-  }
-
   const chatId = buildChatId(packet.chatInfo.userName, packet.chatInfo.itemId)
   store.set(chatId, packet)
   logger.info(`保存对话: ${chatId}`)
@@ -61,7 +52,11 @@ export function getById(chatId: string): Conversation | null {
  * 追加消息到对话（update）
  * 对话不存在则报错
  */
-export function appendMessage(chatId: string, message: string): Conversation {
+export function appendMessage(
+  chatId: string,
+  message: string,
+  isSelf: boolean = true
+): Conversation {
   const id = safeId(chatId)
   const existing = store.get(id)
 
@@ -69,7 +64,7 @@ export function appendMessage(chatId: string, message: string): Conversation {
     throw new Error(`对话不存在: ${chatId}`)
   }
 
-  existing.messages.push({ type: 'text', content: message, sender: 'user', isSelf: true })
+  existing.messages.push({ type: 'text', content: message, sender: 'user', isSelf })
   store.set(id, existing)
   return existing
 }

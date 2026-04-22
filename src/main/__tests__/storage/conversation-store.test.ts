@@ -9,12 +9,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { resetMockStoreData } from '../mock-electron-store'
 import type { Conversation } from '../../../shared/types'
 
-// Mock product-store 避免 conversation-store 测试时触发商品查询
-vi.mock('../../stores/product-store', () => ({
-  getById: vi.fn()
-}))
-
-// 延迟导入以应用 mock
 const { buildChatId, createOrUpdate, getById, appendMessage, list, deleteById } =
   await import('../../stores/conversation-store')
 
@@ -24,19 +18,8 @@ const mockConversation: Conversation = {
   messages: []
 }
 
-beforeEach(async () => {
+beforeEach(() => {
   resetMockStoreData()
-  const { getById } = await import('../../stores/product-store')
-  vi.mocked(getById).mockReturnValue({
-    id: 'item001',
-    title: '测试商品',
-    content: '测试描述',
-    priceStrategy: '100元',
-    stock: 10,
-    images: [],
-    mainImageUrl: '',
-    documentKeys: []
-  })
 })
 
 describe('conversation-store', () => {
@@ -69,30 +52,6 @@ describe('conversation-store', () => {
       }
       const result = createOrUpdate(updated)
       expect(result.chatInfo.userName).toBe('updatedUser')
-    })
-
-    describe('createOrUpdate 产品校验', () => {
-      it('产品不存在时抛出错误', async () => {
-        const { getById } = await import('../../stores/product-store')
-        vi.mocked(getById).mockReturnValue(null)
-        expect(() => createOrUpdate(mockConversation)).toThrow('产品 item001 不存在')
-      })
-
-      it('产品存在时正常创建', async () => {
-        const { getById } = await import('../../stores/product-store')
-        vi.mocked(getById).mockReturnValue({
-          id: 'item001',
-          title: '测试商品',
-          content: '测试描述',
-          priceStrategy: '100元',
-          stock: 10,
-          images: [],
-          mainImageUrl: '',
-          documentKeys: []
-        })
-        const result = createOrUpdate(mockConversation)
-        expect(result).toEqual(mockConversation)
-      })
     })
   })
 
@@ -131,6 +90,32 @@ describe('conversation-store', () => {
 
     it('追加到不存在的对话抛出错误', () => {
       expect(() => appendMessage('nonexistent_chat', 'hello')).toThrow('对话不存在:')
+    })
+
+    it('追加买家消息时 isSelf 为 false', () => {
+      const conversation: Conversation = {
+        chatInfo: { userName: 'testUser', itemId: 'item001', isMyProduct: false },
+        messages: []
+      }
+      createOrUpdate(conversation)
+      const chatId = buildChatId(conversation.chatInfo.userName, conversation.chatInfo.itemId)
+      const result = appendMessage(chatId, '我已付款', false)
+
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].isSelf).toBe(false)
+      expect(result.messages[0].content).toBe('我已付款')
+    })
+
+    it('默认 isSelf 为 true（向后兼容）', () => {
+      const conversation: Conversation = {
+        chatInfo: { userName: 'testUser', itemId: 'item001', isMyProduct: false },
+        messages: []
+      }
+      createOrUpdate(conversation)
+      const chatId = buildChatId(conversation.chatInfo.userName, conversation.chatInfo.itemId)
+      const result = appendMessage(chatId, '好的')
+
+      expect(result.messages[0].isSelf).toBe(true)
     })
   })
 
