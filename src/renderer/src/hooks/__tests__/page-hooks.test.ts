@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { AgentConfig, Product } from '@shared/types'
+import {
+  createConfigsPageState,
+  parseKeywordInput,
+  stringifyKeywordInput
+} from '@renderer/pages/configs-page-model'
 import { buildProductRows } from '../useProductsPage'
 import { createAgentConfigs, DEFAULT_AGENT_CONFIGS } from '../useAgentConfigs'
 
@@ -41,5 +46,38 @@ describe('createAgentConfigs', () => {
     expect(configs.system).toEqual(partialConfigs.system)
     expect(configs.tech).toEqual(DEFAULT_AGENT_CONFIGS.tech)
     expect(configs.default).toEqual(DEFAULT_AGENT_CONFIGS.default)
+  })
+})
+
+describe('createConfigsPageState', () => {
+  it('在后端返回部分配置时使用共享默认值补齐缺失字段', () => {
+    const state = createConfigsPageState({
+      humanTakeoverKeywords: '',
+      safetyFilterBlockedKeywords: ['  微信  ', '', 'QQ'],
+      browserUrl: ''
+    })
+
+    expect(state.config.model).toBe('MiniMax-M2.7')
+    expect(state.config.baseURL).toBe('https://api.minimaxi.com/v1')
+    expect(state.config.humanTakeoverKeywords).toBe('')
+    expect(state.config.browserUrl).toBe('')
+    expect(state.config.safetyFilterReplacement).toBe('**')
+    expect(state.config.orderWebhookUrl).toBe('')
+    expect(state.config.safetyFilterBlockedKeywords).toEqual(['微信', 'QQ'])
+    expect(state.keywordInput).toBe('微信, QQ')
+  })
+})
+
+describe('parseKeywordInput', () => {
+  it('按中英文逗号切分、去空白并去重', () => {
+    expect(parseKeywordInput(' 微信, QQ，  微信 ,, 支付宝转账  ')).toEqual([
+      '微信',
+      'QQ',
+      '支付宝转账'
+    ])
+  })
+
+  it('将关键词数组格式化为稳定的输入框字符串', () => {
+    expect(stringifyKeywordInput(['微信', 'QQ', '支付宝转账'])).toBe('微信, QQ, 支付宝转账')
   })
 })
