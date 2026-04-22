@@ -2,18 +2,16 @@ import { Routes, Route } from 'react-router-dom'
 import { Sidebar } from './components/Sidebar'
 import { AppHeader } from './components/AppHeader'
 
-import { ConfigsPage } from './pages/ConfigsPage'
-import { ProductsPage } from './pages/ProductsPage'
-import { AgentConfigPage } from './pages/AgentConfigPage'
-import { ConversationsPage } from './pages/ConversationsPage'
-import { DocumentsPage } from './pages/DocumentsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
-import { QuickStartPage } from './pages/QuickStartPage'
-import { QAndAPage } from './pages/QAndAPage'
 
 import { ToastProvider, ToastContainer } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { getRouteComponent } from './routes/route-components'
+import { getRouteMetaList } from './routes/route-meta'
 
+/**
+ * 组装渲染进程的应用骨架与页面路由。
+ */
 function App(): React.JSX.Element {
   return (
     <ThemeProvider>
@@ -24,13 +22,11 @@ function App(): React.JSX.Element {
             <AppHeader />
             <main style={{ flex: 1, overflow: 'auto' }}>
               <Routes>
-                <Route path="/" element={<ConfigsPage />} />
-                <Route path="/products" element={<ProductsPage />} />
-                <Route path="/agent-config" element={<AgentConfigPage />} />
-                <Route path="/conversations" element={<ConversationsPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
-                <Route path="/quick-start" element={<QuickStartPage />} />
-                <Route path="/q-and-a" element={<QAndAPage />} />
+                {getRouteMetaList().map(({ path }) => {
+                  const RouteComponent = getRouteComponent(path)
+
+                  return <Route key={path} path={path} element={<RouteComponent />} />
+                })}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </main>

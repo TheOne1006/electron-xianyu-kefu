@@ -1,0 +1,44 @@
+[
+  {
+    "path": "/",
+    "title": "设置",
+    "iconKey": "settings",
+    "navVisible": true
+  },
+  {
+    "path": "/products",
+    "title": "产品",
+    "iconKey": "products",
+    "navVisible": true
+  },
+  {
+    "path": "/agent-config",
+    "title": "Agent",
+    "iconKey": "agent",
+    "navVisible": true
+  },
+  {
+    "path": "/conversations",
+    "title": "对话",
+    "iconKey": "conversations",
+    "navVisible": true
+  },
+  {
+    "path": "/documents",
+    "title": "文档库",
+    "iconKey": "documents",
+    "navVisible": true
+  },
+  {
+    "path": "/quick-start",
+    "title": "快速开始",
+    "iconKey": "quickStart",
+    "navVisible": true
+  },
+  {
+    "path": "/q-and-a",
+    "title": "Q&A",
+    "iconKey": "qa",
+    "navVisible": true
+  }
+]
