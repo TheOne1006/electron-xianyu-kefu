@@ -120,16 +120,18 @@ export function ProductsTable({
                   <span className="products-page__image-placeholder">-</span>
                 )}
               </td>
-              <td className="products-page__actions">
-                <button className="btn btn-secondary btn-sm" onClick={() => onEdit(product)}>
-                  编辑
-                </button>
-                <button
-                  className="btn btn-secondary btn-sm text-danger"
-                  onClick={() => onDeleteRequest(product.id)}
-                >
-                  删除
-                </button>
+              <td>
+                <div className="products-page__actions">
+                  <button className="btn btn-secondary btn-sm" onClick={() => onEdit(product)}>
+                    编辑
+                  </button>
+                  <button
+                    className="btn btn-secondary btn-sm text-danger"
+                    onClick={() => onDeleteRequest(product.id)}
+                  >
+                    删除
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

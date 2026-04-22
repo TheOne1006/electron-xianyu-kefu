@@ -77,7 +77,11 @@ export class BrowserAutomationService {
 
   async pressEnter(point: Point): Promise<void> {
     await this.sleep(this.randomBetween(100, 200))
-    this.webContents.sendInputEvent({ type: 'mouseMove', x: Math.round(point.x), y: Math.round(point.y) })
+    this.webContents.sendInputEvent({
+      type: 'mouseMove',
+      x: Math.round(point.x),
+      y: Math.round(point.y)
+    })
     await this.sleep(this.randomBetween(50, 100))
     this.webContents.sendInputEvent({
       type: 'mouseDown',

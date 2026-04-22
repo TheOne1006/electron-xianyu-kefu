@@ -18,19 +18,22 @@ export function registerReplyQueueHandlers(): void {
     return ok({ chatId: item?.chatId ?? null, replyText: item?.replyText ?? null })
   })
 
-  ipcMain.handle('reply-queue:enqueue', (_event, { chatId, content }: { chatId: string; content: string }) => {
-    try {
-      appendConversationMessage(chatId, content)
+  ipcMain.handle(
+    'reply-queue:enqueue',
+    (_event, { chatId, content }: { chatId: string; content: string }) => {
+      try {
+        appendConversationMessage(chatId, content)
 
-      const queueResult = enqueue(chatId, content)
-      if (!queueResult.success) {
-        logger.warn(`[reply-queue:enqueue] 队列推送失败: ${queueResult.error}`)
+        const queueResult = enqueue(chatId, content)
+        if (!queueResult.success) {
+          logger.warn(`[reply-queue:enqueue] 队列推送失败: ${queueResult.error}`)
+        }
+
+        return ok({ success: true })
+      } catch (error) {
+        logger.error(`[reply-queue:enqueue] 失败: ${error}`)
+        return err(3, '发送失败')
       }
-
-      return ok({ success: true })
-    } catch (error) {
-      logger.error(`[reply-queue:enqueue] 失败: ${error}`)
-      return err(3, '发送失败')
     }
-  })
+  )
 }

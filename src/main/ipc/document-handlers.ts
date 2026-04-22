@@ -22,10 +22,13 @@ export function registerDocumentHandlers(): void {
     return ok(getAllDocuments())
   })
 
-  ipcMain.handle('document:upsert', (_event, { key, content }: { key: string; content: string }) => {
-    upsertDocument(key, content)
-    return ok(content)
-  })
+  ipcMain.handle(
+    'document:upsert',
+    (_event, { key, content }: { key: string; content: string }) => {
+      upsertDocument(key, content)
+      return ok(content)
+    }
+  )
 
   ipcMain.handle('document:delete', (_event, { key }: { key: string }) => {
     deleteDocument(key)
