@@ -200,7 +200,9 @@ export function TagSelect({
                 >
                   <span>{opt.label}</span>
                   {isSelected && (
-                    <span style={{ color: 'var(--brand-primary)', fontSize: 'var(--text-caption)' }}>
+                    <span
+                      style={{ color: 'var(--brand-primary)', fontSize: 'var(--text-caption)' }}
+                    >
                       ✓ 已选
                     </span>
                   )}

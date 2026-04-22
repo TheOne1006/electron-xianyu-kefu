@@ -2,7 +2,7 @@
  * E2E 测试 Harness — 拦截 ImRobot 定时器
  *
  * 此脚本必须在 injected.bundle.js 注入之前执行。
- * 它会 monkey-patch setInterval，捕获 ImRobot 创建的 10s 定时器，
+ * 它会 monkey-patch setInterval，捕获 ImRobot 创建的 30s 兜底定时器，
  * 替换为 500ms 短间隔，同时暴露 tick 控制接口。
  *
  * 使用方式（在 fixture 中按顺序执行）：
@@ -18,8 +18,8 @@
 
   // Monkey-patch setInterval
   window.setInterval = function (fn, delay, ...args) {
-    // ImRobot 的 tick 间隔是 10 * 1000 = 10000ms
-    if (delay === 10000 || delay === 10 * 1000) {
+    // ImRobot 的兜底轮询间隔是 30 * 1000 = 30000ms（旧版本为 10s）
+    if (delay === 30000 || delay === 30 * 1000 || delay === 10000 || delay === 10 * 1000) {
       // 用 500ms 替代
       _capturedTickFn = fn
       return _originalSetInterval.call(window, fn, 500, ...args)
@@ -31,6 +31,12 @@
   window.__testRobot = {
     /** 手动触发一次 tick */
     async triggerTick() {
+      if (_capturedTickFn) {
+        await _capturedTickFn()
+      }
+    },
+    /** 手动触发一次 DOM 变化检测（等同于 triggerTick） */
+    async triggerDomChange() {
       if (_capturedTickFn) {
         await _capturedTickFn()
       }
