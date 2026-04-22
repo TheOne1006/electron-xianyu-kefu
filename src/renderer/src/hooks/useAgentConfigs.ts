@@ -59,6 +59,16 @@ export const DEFAULT_AGENT_CONFIGS: Record<AgentKey, AgentCardData> = {
   tech: techDefault
 }
 
+interface UseAgentConfigsResult {
+  configs: Record<AgentKey, AgentCardData>
+  dirtyKeys: Set<AgentKey>
+  loading: boolean
+  agentDefinitions: AgentDefinition[]
+  handleFieldChange: (key: AgentKey, field: keyof AgentCardData, value: string | number) => void
+  handleSave: (key: AgentKey) => Promise<void>
+  handleReset: (key: AgentKey) => void
+}
+
 /**
  * 将后端返回的 Agent 配置与本地默认值合并，确保 5 个 Agent 都有可用配置。
  */
@@ -77,8 +87,10 @@ export function createAgentConfigs(
 /**
  * 管理 Agent 配置页面的数据加载、脏状态和保存重置行为。
  */
-export function useAgentConfigs() {
-  const [configs, setConfigs] = useState<Record<AgentKey, AgentCardData>>(() => createAgentConfigs())
+export function useAgentConfigs(): UseAgentConfigsResult {
+  const [configs, setConfigs] = useState<Record<AgentKey, AgentCardData>>(() =>
+    createAgentConfigs()
+  )
   const [dirtyKeys, setDirtyKeys] = useState<Set<AgentKey>>(new Set())
   const [loading, setLoading] = useState(true)
   const { showToast } = useToast()

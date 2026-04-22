@@ -1,10 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import { useToast } from '../contexts/ToastContext'
+
+interface UseDocumentsPageResult {
+  documents: Record<string, string>
+  entries: Array<[string, string]>
+  loading: boolean
+  showAddModal: boolean
+  editKey: string | null
+  deleteConfirm: string | null
+  setShowAddModal: Dispatch<SetStateAction<boolean>>
+  setEditKey: Dispatch<SetStateAction<string | null>>
+  setDeleteConfirm: Dispatch<SetStateAction<string | null>>
+  handleAdd: (key: string, content: string) => Promise<void>
+  handleEdit: (key: string, content: string) => Promise<void>
+  handleDelete: (key: string) => Promise<void>
+}
 
 /**
  * 文档管理页面的数据与 UI 状态。
  */
-export function useDocumentsPage() {
+export function useDocumentsPage(): UseDocumentsPageResult {
   const [documents, setDocuments] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)

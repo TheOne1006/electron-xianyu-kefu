@@ -39,11 +39,7 @@ export function DocumentsPage(): React.JSX.Element {
         </button>
       </div>
 
-      <DocumentsTable
-        entries={entries}
-        onEdit={setEditKey}
-        onDeleteRequest={setDeleteConfirm}
-      />
+      <DocumentsTable entries={entries} onEdit={setEditKey} onDeleteRequest={setDeleteConfirm} />
 
       {showAddModal && (
         <DocumentModal

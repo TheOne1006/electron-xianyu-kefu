@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import type { Product } from '@shared/types'
 import { useToast } from '../contexts/ToastContext'
 
@@ -12,6 +13,25 @@ export interface DocumentTooltipState {
   content: string
   x: number
   y: number
+}
+
+interface UseProductsPageResult {
+  products: ProductRow[]
+  allDocuments: Record<string, string>
+  loading: boolean
+  showAddModal: boolean
+  editProduct: Product | null
+  deleteConfirm: string | null
+  hoveredDoc: DocumentTooltipState | null
+  setShowAddModal: Dispatch<SetStateAction<boolean>>
+  setEditProduct: Dispatch<SetStateAction<Product | null>>
+  setDeleteConfirm: Dispatch<SetStateAction<string | null>>
+  loadProducts: () => Promise<void>
+  handleAdd: (product: Omit<Product, 'id'>) => Promise<void>
+  handleEdit: (product: Product) => Promise<void>
+  handleDelete: (id: string) => Promise<void>
+  showDocumentTooltip: (tooltip: DocumentTooltipState) => void
+  hideDocumentTooltip: () => void
 }
 
 /**
@@ -30,7 +50,7 @@ export function buildProductRows(
 /**
  * 管理产品页的数据加载、增删改和浮层状态。
  */
-export function useProductsPage() {
+export function useProductsPage(): UseProductsPageResult {
   const [products, setProducts] = useState<ProductRow[]>([])
   const [allDocuments, setAllDocuments] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)

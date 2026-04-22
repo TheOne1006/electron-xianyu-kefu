@@ -23,7 +23,7 @@ export function DeleteProductDialog({
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             取消
           </button>
-          <button className="btn btn-primary btn-sm text-danger" onClick={() => onConfirm(productId)}>
+          <button className="btn btn-danger btn-sm" onClick={() => onConfirm(productId)}>
             删除
           </button>
         </div>

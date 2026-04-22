@@ -18,17 +18,12 @@ export function DeleteDocumentDialog({
     <div className="modal-backdrop">
       <div className="modal-panel documents-page__modal-panel">
         <h3 className="modal-title">确认删除</h3>
-        <p className="modal-description">
-          确定要删除文档「{documentKey}」吗？此操作不可撤销。
-        </p>
+        <p className="modal-description">确定要删除文档「{documentKey}」吗？此操作不可撤销。</p>
         <div className="modal-actions">
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             取消
           </button>
-          <button
-            className="btn btn-primary btn-sm text-danger"
-            onClick={() => onConfirm(documentKey)}
-          >
+          <button className="btn btn-danger btn-sm" onClick={() => onConfirm(documentKey)}>
             删除
           </button>
         </div>
