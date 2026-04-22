@@ -27,10 +27,9 @@ vi.mock('../../stores/reply-queue', () => ({
   enqueue: (...args: unknown[]) => mockEnqueue(...args)
 }))
 
-// mock global fetch
 globalThis.fetch = mockFetch as unknown as typeof fetch
 
-import { handlePaymentEvent, clearProcessedPayments } from '../../../main/business/payment-handler'
+import { handlePaymentEvent } from '../../../main/business/payment-handler'
 import type { ChatInfo, PaymentInfo, Product, AppConfig } from '../../../shared/types'
 
 function createTestChatInfo(): ChatInfo {
@@ -43,7 +42,6 @@ function createTestPaymentInfo(): PaymentInfo {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  clearProcessedPayments()
   mockGetProductById.mockReturnValue({
     id: 'item123',
     title: '测试商品',
@@ -134,37 +132,6 @@ describe('payment-handler', () => {
     })
   })
 
-  describe('去重', () => {
-    it('同一用户+商品只处理一次', async () => {
-      mockGetProductById.mockReturnValue({
-        id: 'item123',
-        title: '测试商品',
-        autoDeliver: true,
-        autoDeliverContent: '兑换码: ABC123'
-      } as Product)
-
-      await handlePaymentEvent(createTestChatInfo(), createTestPaymentInfo())
-      await handlePaymentEvent(createTestChatInfo(), createTestPaymentInfo())
-
-      expect(mockPushReplyToInjector).toHaveBeenCalledTimes(1)
-    })
-
-    it('不同用户+商品分别处理', async () => {
-      const chatInfo2: ChatInfo = { userName: '另一个买家', itemId: 'item123', isMyProduct: true }
-      mockGetProductById.mockReturnValue({
-        id: 'item123',
-        title: '测试商品',
-        autoDeliver: true,
-        autoDeliverContent: '兑换码: ABC123'
-      } as Product)
-
-      await handlePaymentEvent(createTestChatInfo(), createTestPaymentInfo())
-      await handlePaymentEvent(chatInfo2, createTestPaymentInfo())
-
-      expect(mockPushReplyToInjector).toHaveBeenCalledTimes(2)
-    })
-  })
-
   describe('边界情况', () => {
     it('商品不存在时不处理', async () => {
       mockGetProductById.mockReturnValue(null)
@@ -173,6 +140,20 @@ describe('payment-handler', () => {
 
       expect(mockPushReplyToInjector).not.toHaveBeenCalled()
       expect(mockFetch).not.toHaveBeenCalled()
+    })
+
+    it('自动发货内容为空时不发送', async () => {
+      mockGetProductById.mockReturnValue({
+        id: 'item123',
+        title: '测试商品',
+        autoDeliver: true,
+        autoDeliverContent: ''
+      } as Product)
+
+      await handlePaymentEvent(createTestChatInfo(), createTestPaymentInfo())
+
+      expect(mockPushReplyToInjector).not.toHaveBeenCalled()
+      expect(mockFetch).toHaveBeenCalled()
     })
   })
 })
