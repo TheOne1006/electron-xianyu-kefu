@@ -21,3 +21,16 @@ export interface ChatListItem {
 
 /** ImRobot 状态机状态 */
 export type AgentState = 'IDLE' | 'CHECKING' | 'PROCESSING_REPLY' | 'PROCESSING_COLLECT' | 'CLEANUP'
+
+/** 主进程推送指令的结果 */
+export interface CommandResult {
+  success: boolean
+  reason?: string
+  state?: AgentState
+}
+
+/** 注入脚本暴露给主进程的命令接口 */
+export interface RobotCommands {
+  sendReply(chatId: string, replyText: string): Promise<CommandResult>
+  getStatus(): { state: AgentState; lastActivity: number }
+}

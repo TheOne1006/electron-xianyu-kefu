@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>闲鱼 IM 模拟页面（测试用）</title>
+    <link rel="stylesheet" href="im-styles.css" />
+  </head>
+  <body>
+    <main>
+      <!-- 左侧会话列表 -->
+      <div class="conversation-list--mock">
+        <!-- 由 im-controller.js 动态渲染 -->
+      </div>
+
+      <!-- 右侧聊天区域 -->
+      <div class="chat-area--mock">
+        <!-- 聊天头部 -->
+        <div class="conv-header--mock">
+          <span class="text1--mock"></span>
+          <a href="#"></a>
+        </div>
+
+        <!-- 消息列表 -->
+        <div class="message-list--mock">
+          <ul class="ant-list-items">
+            <!-- 由 im-controller.js 动态渲染 -->
+          </ul>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="input-area--mock">
+          <textarea class="ant-input" placeholder="输入消息..."></textarea>
+        </div>
+      </div>
+    </main>
+
+    <!-- 调试面板 -->
+    <div class="debug-panel" id="debugPanel" style="display: none">
+      <div class="debug-title">Mock API 调用日志</div>
+      <button class="log-toggle" onclick="toggleDebug()">隐藏</button>
+      <div id="debugLog"></div>
+    </div>
+    <button
+      class="log-toggle"
+      style="
+        position: fixed;
+        bottom: 8px;
+        right: 8px;
+        z-index: 10000;
+        background: #333;
+        color: #ccc;
+        border: 1px solid #555;
+        border-radius: 4px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 11px;
+      "
+      onclick="toggleDebug()"
+    >
+      调试日志
+    </button>
+
+    <!-- 按依赖顺序加载脚本 -->
+    <script src="test-data.js"></script>
+    <script src="im-electron-mock.js"></script>
+    <script src="im-controller.js"></script>
+
+    <script>
+      // 调试面板逻辑
+      let debugVisible = false
+      function toggleDebug() {
+        debugVisible = !debugVisible
+        const panel = document.getElementById('debugPanel')
+        panel.style.display = debugVisible ? 'block' : 'none'
+        if (debugVisible) refreshDebugLog()
+      }
+
+      function refreshDebugLog() {
+        const logEl = document.getElementById('debugLog')
+        const logs = window.__mockCallLog || []
+        logEl.innerHTML = logs
+          .map(function (entry) {
+            return (
+              '<div class="log-entry">' +
+              '<span class="log-api">' +
+              entry.api +
+              '</span>.' +
+              '<span class="log-method">' +
+              entry.method +
+              '</span>(' +
+              '<span class="log-args">' +
+              JSON.stringify(entry.args).substring(0, 100) +
+              '</span>)' +
+              '</div>'
+            )
+          })
+          .join('')
+      }
+
+      // 定期刷新调试面板
+      setInterval(function () {
+        if (debugVisible) refreshDebugLog()
+      }, 500)
+    </script>
+  </body>
+</html>

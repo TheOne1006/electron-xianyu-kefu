@@ -1,57 +1,78 @@
 /**
- * IM 页面自动化机器人
+ * IM 页面自动化机器人（事件驱动版）
  *
- * 状态机驱动：IDLE → CHECKING → PROCESSING_REPLY/PROCESSING_COLLECT → CLEANUP → IDLE
- * 每 10 秒 tick 一次：
- *   1. 优先拉取回复队列，有则 PROCESSING_REPLY
- *   2. 其次检测未读消息，有则 PROCESSING_COLLECT 或清除系统消息标记
+ * 状态机驱动：IDLE → PROCESSING_REPLY/PROCESSING_COLLECT → IDLE
+ * 触发方式：
+ *   - MutationObserver 实时监听左侧会话列表 DOM 变化
+ *   - 主进程通过 executeJavaScript 调用 __robotCommands.sendReply() 主动推送
+ *   - 30s 低频兜底轮询防止 Observer 失效
  */
 import { createConsola } from 'consola/browser'
-import type { ChatListItem, AgentState } from './types'
+import type { ChatListItem, AgentState, CommandResult, RobotCommands } from './types'
 import type { ChatInfo, Product } from '../shared/types'
 import { PRODUCT_MAIN_IMAGE_URL_COMPARE_LENGTH } from '../shared/constants'
 import { ImDomExtractor } from './im-dom-extractor'
 
 const logger = createConsola({ defaults: { tag: 'injected:im-robot' } })
 
+/** 注入脚本可调用的 Electron API（由 preload-browser.ts 注入） */
+declare global {
+  interface Window {
+    __robotCommands?: RobotCommands
+  }
+}
+
 export class ImRobot {
   state: AgentState = 'IDLE'
+  lastActivity = Date.now()
 
   // 产品信息
   private products: Product[] = []
-  private timer: ReturnType<typeof setInterval> | null = null
+  private observer: MutationObserver | null = null
+  private fallbackTimer: ReturnType<typeof setInterval> | null = null
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null
   private currentWindowSnapshot = ''
 
   async start(): Promise<void> {
-    if (this.timer) {
-      logger.warn('[状态机] 处理器已在运行中')
-      return
-    }
-    this.timer = setInterval(() => {
-      this.tick().catch((err) => {
-        logger.error('[状态机] tick 出错:', err)
-        this.state = 'IDLE'
-      })
-    }, 10 * 1000)
-
     // 初始化产品信息
     if (!this.products.length) {
-      this.products = await this.getProducs()
+      this.products = await this.getProducts()
     }
 
-    logger.info('[状态机] 处理器已启动 (间隔 10s)')
+    // 启动 MutationObserver
+    this.startObserver()
+
+    // 启动低频兜底轮询（30s）
+    this.fallbackTimer = setInterval(() => {
+      this.fallbackCheck().catch((err) => {
+        logger.error('[兜底轮询] 出错:', err)
+      })
+    }, 30 * 1000)
+
+    // 注册全局命令接口
+    this.registerCommands()
+
+    logger.info('[状态机] 处理器已启动 (Observer + 30s 兜底)')
   }
 
   stop(): void {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-      logger.info('[状态机] 处理器已停止')
+    if (this.observer) {
+      this.observer.disconnect()
+      this.observer = null
     }
+    if (this.fallbackTimer) {
+      clearInterval(this.fallbackTimer)
+      this.fallbackTimer = null
+    }
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = null
+    }
+    logger.info('[状态机] 处理器已停止')
   }
 
   /** 获取产品列表 */
-  private async getProducs(): Promise<Product[]> {
+  private async getProducts(): Promise<Product[]> {
     try {
       const result = await window.electronAPI?.product.list()
       if (result && result.code === 0 && result.data) {
@@ -65,47 +86,81 @@ export class ImRobot {
     }
   }
 
-  private async tick(): Promise<void> {
+  /** 启动 MutationObserver 监听左侧会话列表 */
+  private startObserver(): void {
+    const target = this.findConversationListContainer()
+    if (!target) {
+      logger.warn('[Observer] 未找到会话列表容器，2 秒后重试')
+      setTimeout(() => this.startObserver(), 2000)
+      return
+    }
+
+    this.observer = new MutationObserver((mutations) => {
+      const hasSignificantChange = mutations.some((m) => {
+        if (m.type === 'childList') return true
+        if (m.type === 'characterData') return true
+        return false
+      })
+      if (!hasSignificantChange) return
+
+      this.onDomChange()
+    })
+
+    this.observer.observe(target, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    })
+
+    logger.info('[Observer] 已启动监听会话列表')
+  }
+
+  /** 查找左侧会话列表容器 */
+  private findConversationListContainer(): Element | null {
+    const firstItem = document.querySelector('div[class*="conversation-item--"]')
+    if (firstItem?.parentElement) {
+      return firstItem.parentElement
+    }
+
+    const container = document.querySelector('div[class*="conversation-list"]')
+    if (container) return container
+
+    return null
+  }
+
+  /** DOM 变化回调（debounce 300ms） */
+  private onDomChange(): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer)
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.handleDomChange().catch((err) => {
+        logger.error('[Observer] 处理 DOM 变化出错:', err)
+      })
+    }, 300)
+  }
+
+  /** 处理检测到的 DOM 变化 */
+  private async handleDomChange(): Promise<void> {
     if (this.state !== 'IDLE') {
-      logger.info(`[状态机] 当前状态 ${this.state}，跳过本次 tick`)
+      logger.info(`[Observer] 当前状态 ${this.state}，跳过本次变化`)
       return
     }
 
-    // ─── CHECKING ───────────────────────────────────────
-    logger.info('[状态机] IDLE → CHECKING')
-    this.state = 'CHECKING'
+    logger.info('[Observer] 检测到会话列表变化')
+    this.lastActivity = Date.now()
 
-    // 获取聊天会话列表
     const chatList = ImDomExtractor.getChatList()
-
-    // Step 1: 拉取回复队列（优先）
-    const reply = await this.fetchPendingReply()
-    if (reply) {
-      // 找到匹配的会话项
-      const matchedChat = this.findMatchingChatItem(chatList, reply.chatInfo.itemId)
-      if (!matchedChat) {
-        logger.warn(`[状态机] 未找到匹配的会话项: itemId=${reply.chatInfo.itemId}`)
-        return
-      }
-
-      await this.handleReply(reply, matchedChat)
-      this.cleanup()
-      return
-    }
-
-    // Step 2: 检测未读
     const hasUnread = ImDomExtractor.hasUnreadMessages()
     const firstUnread = hasUnread ? chatList.find((c) => c.hasUnread) : undefined
 
     if (firstUnread) {
-      // 分支：系统消息 vs 用户消息
       if (firstUnread.type === 'system') {
-        logger.info(`[状态机] 处理系统消息: ${firstUnread.userName || firstUnread.lastMessage}`)
+        logger.info(`[Observer] 处理系统消息: ${firstUnread.userName || firstUnread.lastMessage}`)
         await this.likeHumanClick(firstUnread.dom)
         this.cleanup()
         return
       } else {
-        // 点击导航到聊天窗口
         await this.likeHumanClick(firstUnread.dom)
         await new Promise((resolve) => setTimeout(resolve, 1500))
         await this.handleCollectDirect()
@@ -114,67 +169,146 @@ export class ImRobot {
       }
     }
 
-    // Step 3: 当前窗口快照 diff（检测已打开聊天中的新消息）
+    // 检查当前窗口快照 diff
     const snapshot = ImDomExtractor.getCurrentWindowSnapshot()
-    if (!snapshot.isChatOpen) {
-      logger.info('[状态机] CHECKING → IDLE (当前无聊天窗口)')
-      this.state = 'IDLE'
-      return
+    if (snapshot.isChatOpen) {
+      const isMyProduct = this.products.some((p) => p.id === snapshot.itemId)
+      if (isMyProduct) {
+        const fingerprint = JSON.stringify({
+          userName: snapshot.userName,
+          itemId: snapshot.itemId,
+          lastUserMessage: snapshot.lastUserMessage
+        })
+        if (fingerprint !== this.currentWindowSnapshot) {
+          logger.info(
+            `[Observer] 当前窗口新消息: ${snapshot.userName}: ${snapshot.lastUserMessage.substring(0, 30)}...`
+          )
+          this.state = 'PROCESSING_COLLECT'
+          await this.handleCollectDirect()
+          this.currentWindowSnapshot = fingerprint
+          this.cleanup()
+          return
+        }
+      }
     }
 
-    // 判断是否是我的商品
-    const isMyProduct = this.products.some((p) => p.id === snapshot.itemId)
-    if (!isMyProduct) {
-      logger.info(`[状态机] CHECKING → IDLE (非我的商品: ${snapshot.itemId})`)
-      this.state = 'IDLE'
-      return
+    logger.info('[Observer] 无需处理的变化')
+  }
+
+  /** 30s 兜底轮询检查（防止 Observer 失效） */
+  private async fallbackCheck(): Promise<void> {
+    if (this.state !== 'IDLE') return
+
+    const reply = await this.fetchPendingReply()
+    if (reply) {
+      const chatList = ImDomExtractor.getChatList()
+      const matchedChat = this.findMatchingChatItem(chatList, reply.chatInfo.itemId)
+      if (matchedChat) {
+        this.state = 'PROCESSING_REPLY'
+        await this.handleReply(reply, matchedChat)
+        this.cleanup()
+        return
+      }
     }
 
-    const fingerprint = JSON.stringify({
-      userName: snapshot.userName,
-      itemId: snapshot.itemId,
-      lastUserMessage: snapshot.lastUserMessage
-    })
+    const hasUnread = ImDomExtractor.hasUnreadMessages()
+    if (hasUnread) {
+      logger.info('[兜底轮询] 检测到未读消息（Observer 可能未触发）')
+      await this.handleDomChange()
+    }
+  }
 
-    if (fingerprint === this.currentWindowSnapshot) {
-      logger.info('[状态机] CHECKING → IDLE (当前窗口无变化)')
-      this.state = 'IDLE'
-      return
+  /** 注册全局命令接口（供主进程通过 executeJavaScript 调用） */
+  private registerCommands(): void {
+    const commands: RobotCommands = {
+      sendReply: async (chatId: string, replyText: string): Promise<CommandResult> => {
+        if (this.state !== 'IDLE') {
+          return { success: false, reason: 'busy', state: this.state }
+        }
+
+        this.state = 'PROCESSING_REPLY'
+        this.lastActivity = Date.now()
+
+        try {
+          const chatInfo = await this.getChatInfoById(chatId)
+          if (!chatInfo) {
+            this.state = 'IDLE'
+            return { success: false, reason: 'chat_not_found' }
+          }
+
+          const chatList = ImDomExtractor.getChatList()
+          const matchedChat = this.findMatchingChatItem(chatList, chatInfo.itemId)
+          if (!matchedChat) {
+            this.state = 'IDLE'
+            return { success: false, reason: 'chat_item_not_found' }
+          }
+
+          await this.executeReply(chatId, replyText, matchedChat)
+          this.cleanup()
+          return { success: true }
+        } catch (err) {
+          logger.error('[命令] sendReply 执行失败:', err)
+          this.state = 'IDLE'
+          return { success: false, reason: 'execution_error' }
+        }
+      },
+
+      getStatus: () => {
+        return { state: this.state, lastActivity: this.lastActivity }
+      }
     }
 
-    // 指纹变化 → 采集新消息
-    logger.info(
-      `[状态机] CHECKING → PROCESSING_COLLECT (当前窗口新消息: ${snapshot.userName}: ${snapshot.lastUserMessage.substring(0, 30)}...)`
-    )
-    this.state = 'PROCESSING_COLLECT'
-    await this.handleCollectDirect()
-    this.currentWindowSnapshot = fingerprint
-    this.cleanup()
+    window.__robotCommands = commands
+    logger.info('[命令] 全局命令接口已注册')
+  }
+
+  /** 通过 chatId 获取 chatInfo */
+  private async getChatInfoById(chatId: string): Promise<ChatInfo | null> {
+    try {
+      if (!window.electronAPI) return null
+      const result = await window.electronAPI.conversation.getById(chatId)
+      if (result.code !== 0 || !result.data) return null
+      return result.data.chatInfo
+    } catch {
+      return null
+    }
+  }
+
+  /** 拉取回复队列（兜底轮询使用） */
+  private async fetchPendingReply(): Promise<{ chatInfo: ChatInfo; replyText: string } | null> {
+    try {
+      if (!window.electronAPI) return null
+
+      const queueResult = await window.electronAPI.replyQueue.dequeue()
+      if (queueResult.code !== 0 || !queueResult.data.chatId) return null
+
+      const { chatId, replyText } = queueResult.data
+      if (!replyText) return null
+
+      const result = await window.electronAPI.conversation.getById(chatId)
+      if (result.code !== 0 || !result.data) return null
+
+      return { chatInfo: result.data.chatInfo, replyText }
+    } catch (err) {
+      logger.error('[状态机] 获取待发回复失败:', err)
+      return null
+    }
   }
 
   /** 模拟人类点击元素 */
   private async likeHumanClick(element: Element): Promise<void> {
-    // 随机 500 - 1000ms 点击
     await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 500))
-    // 找到 元素中心
     const { left, top, width, height } = element.getBoundingClientRect()
     const cx = left + width / 2
     const cy = top + height / 2
-    // 随机 +- 30% 的偏移
     const offsetX = (Math.random() - 0.5) * 0.3 * width
     const offsetY = (Math.random() - 0.5) * 0.2 * height
-
-    // 模拟点击
     window.electronAPI?.simulateClick(cx + offsetX, cy + offsetY)
   }
 
-  /**
-   * 根据 itemId 和 products 列表查找匹配的会话项
-   * 匹配逻辑：通过 products 中商品缩略图前72字符匹配获取 itemId，再在 chatList 中查找对应项
-   */
+  /** 根据 itemId 查找匹配的会话项 */
   private findMatchingChatItem(chatList: ChatListItem[], itemId: string): ChatListItem | null {
-    // 在 products 中查找缩略图前72字符匹配的商品
-    const matchedProduct: Product | undefined = this.products.find((p) => {
+    const matchedProduct = this.products.find((p) => {
       if (!p.mainImageUrl) return false
       return p.id === itemId
     })
@@ -184,7 +318,6 @@ export class ImRobot {
       return null
     }
 
-    // 在 chatList 中的 itemImage 的前 PRODUCT_MAIN_IMAGE_URL_COMPARE_LENGTH 72 字符匹配的商品
     const productImagePrefix = matchedProduct.mainImageUrl.substring(
       0,
       PRODUCT_MAIN_IMAGE_URL_COMPARE_LENGTH
@@ -203,106 +336,44 @@ export class ImRobot {
     return matchedChat
   }
 
-  /** 拉取回复队列 */
-  private async fetchPendingReply(): Promise<{ chatInfo: ChatInfo; replyText: string } | null> {
-    try {
-      if (!window.electronAPI) {
-        logger.warn('[状态机] electronAPI 不可用')
-        return null
-      }
+  /** 执行回复发送（由主进程直接调用或兜底轮询调用） */
+  private async executeReply(
+    chatId: string,
+    replyText: string,
+    matchedChat: ChatListItem
+  ): Promise<void> {
+    logger.info(`[状态机] PROCESSING_REPLY (${chatId}): ${replyText.substring(0, 30)}...`)
 
-      logger.info('[状态机] 拉取回复队列......')
-      // dequeue 返回被移除的 chatId
-      const queueResult = await window.electronAPI.replyQueue.dequeue()
+    await this.likeHumanClick(matchedChat.dom)
+    await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      if (queueResult.code !== 0 || !queueResult.data.chatId) {
-        logger.warn(`[状态机] 回复队列为空: ${queueResult.message}`)
-        return null
-      }
-
-      const chatId = queueResult.data.chatId
-
-      logger.info(`[状态机] 拉取回复队列成功: ${chatId}`)
-
-      // 通过 chatId 获取对话数据
-      const result = await window.electronAPI.conversation.getById(chatId)
-      if (result.code !== 0 || !result.data) {
-        logger.warn(`[状态机] 对话不存在: ${chatId}`)
-        return null
-      }
-
-      const packet = result.data
-      const messages = packet.messages
-      if (messages.length === 0) {
-        logger.warn(`[状态机] 对话消息为空: ${chatId}`)
-        return null
-      }
-
-      const lastMsg = messages[messages.length - 1]
-      if (!lastMsg.isSelf || !lastMsg.content) {
-        logger.warn(`[状态机] 最后一条消息不是用户发送的文本消息: ${chatId}`)
-        return null
-      }
-
-      logger.info(`[状态机] 拉取回复队列成功: ${chatId}, 最后一条消息: ${lastMsg.content}`)
-
-      return {
-        chatInfo: packet.chatInfo,
-        replyText: lastMsg.content
-      }
-    } catch (err) {
-      logger.error('[状态机] 获取待发回复失败:', err)
-      return null
+    const inputEl = document.querySelector<HTMLTextAreaElement>('textarea.ant-input')
+    if (!inputEl) {
+      logger.error('[状态机] 未找到聊天输入框: textarea.ant-input')
+      return
     }
+    await this.likeHumanClick(inputEl)
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    const inputRect = inputEl.getBoundingClientRect()
+    const inputX = inputRect.left + inputRect.width / 2
+    const inputY = inputRect.top + inputRect.height / 2
+    await window.electronAPI?.simulateChineseInput(replyText)
+    await new Promise((resolve) => setTimeout(resolve, 2500))
+
+    await window.electronAPI?.simulateEnterKey(inputX, inputY)
+    logger.info('[状态机] 回复发送成功')
   }
 
-  /** PROCESSING_REPLY: 导航到目标会话并发送 AI 回复 */
+  /** 兜底轮询中使用的 handleReply */
   private async handleReply(
     reply: { chatInfo: ChatInfo; replyText: string },
     matchedChat: ChatListItem
   ): Promise<void> {
-    logger.info(
-      `[状态机] CHECKING → PROCESSING_REPLY (${reply.chatInfo.userName}: ${reply.replyText.substring(0, 30)}...)`
-    )
-    this.state = 'PROCESSING_REPLY'
-
-    try {
-      // Step 2: 点击会话项进入聊天窗口
-      await this.likeHumanClick(matchedChat.dom)
-
-      // Step 3: 等待页面切换
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Step 4: 点击输入框获取焦点
-      const inputEl = document.querySelector<HTMLTextAreaElement>('textarea.ant-input')
-      if (!inputEl) {
-        logger.error(`[状态机] 未找到聊天输入框: textarea.ant-input`)
-        return
-      }
-      await this.likeHumanClick(inputEl)
-
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Step 5: 获取输入框坐标并模拟输入文本（过滤思考标签）
-      const inputRect = inputEl.getBoundingClientRect()
-      const inputX = inputRect.left + inputRect.width / 2
-      const inputY = inputRect.top + inputRect.height / 2
-      await window.electronAPI?.simulateChineseInput(reply.replyText)
-
-      await new Promise((resolve) => setTimeout(resolve, 2500))
-
-      // Step 6: 模拟 Enter 键发送消息
-      await window.electronAPI?.simulateEnterKey(inputX, inputY)
-
-      // 注意：dequeue 已在 fetchPendingReply 中完成，无需再次调用
-      logger.info(`[状态机] 回复发送成功: ${reply.chatInfo.userName}`)
-    } catch (err) {
-      logger.error(`[状态机] 回复发送失败: ${err}`)
-      throw err
-    }
+    await this.executeReply('', reply.replyText, matchedChat)
   }
 
-  /** 纯采集：提取当前聊天数据并通过 IPC 推送给主进程（不含导航） */
+  /** 纯采集：提取当前聊天数据并通过 IPC 推送给主进程 */
   private async handleCollectDirect(): Promise<void> {
     const chatInfo = ImDomExtractor.getCurrentChatInfo()
     const messages = ImDomExtractor.getChatMessages()
@@ -322,11 +393,10 @@ export class ImRobot {
     }
   }
 
-  /** CLEANUP: 清空历史、重置面板、回到 IDLE */
+  /** CLEANUP: 重置状态 */
   private cleanup(): void {
-    // TODO: [STEP-4] 移除 history 管理: this.agent.history = []
-    // TODO: [STEP-5] 移除 panel.reset 调用: this.agent.panel.reset()
     logger.info('[状态机] CLEANUP → IDLE')
     this.state = 'IDLE'
+    this.lastActivity = Date.now()
   }
 }

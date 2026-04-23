@@ -131,6 +131,75 @@ describe('ImDomExtractor', () => {
       expect(messages[0].sender).toBe('卖家昵称')
     })
 
+    it('检测支付卡片并提取 paymentInfo', () => {
+      setupDOM(`
+        <ul class="ant-list-items">
+          <li class="ant-list-item">
+            <div class="message-row--xyz">
+              <div class="avatar--abc"></div>
+              <div>
+                <div>系统通知</div>
+              </div>
+              <div class="ant-dropdown-trigger message-content--xyz">
+                <div class="msg-dx-content--xyz msg-text-left--xyz">
+                  <div>
+                    <div class="msg-dx-title--xyz">我已付款，等待你发货</div>
+                    <div class="msg-dx-line--xyz"></div>
+                    <div class="msg-dx-desc--xyz">请包装好商品，并按我在闲鱼上提供的地址发货</div>
+                    <button class="msg-dx-button--xyz">
+                      <div class="msg-dx-button-text--xyz">去发货</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      `)
+
+      const messages = ImDomExtractor.getChatMessages()
+
+      expect(messages).toHaveLength(1)
+      expect(messages[0].type).toBe('card')
+      expect(messages[0].paymentInfo).toBeDefined()
+      expect(messages[0].paymentInfo?.title).toBe('我已付款，等待你发货')
+      expect(messages[0].paymentInfo?.description).toBe(
+        '请包装好商品，并按我在闲鱼上提供的地址发货'
+      )
+      expect(messages[0].sender).toBe('系统通知')
+      expect(messages[0].isSelf).toBe(false)
+    })
+
+    it('普通 card 不包含 paymentInfo', () => {
+      setupDOM(`
+        <ul class="ant-list-items">
+          <li class="ant-list-item">
+            <div class="message-row--xyz">
+              <div class="avatar--abc"></div>
+              <div>
+                <div>买家</div>
+              </div>
+              <div>
+                <a href="https://www.goofish.com/item?id=123">
+                  <div class="card--xyz">
+                    <div class="title--xyz">商品标题</div>
+                    <div class="price--xyz">¥99</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </li>
+        </ul>
+      `)
+
+      const messages = ImDomExtractor.getChatMessages()
+
+      expect(messages).toHaveLength(1)
+      expect(messages[0].type).toBe('card')
+      expect(messages[0].paymentInfo).toBeUndefined()
+      expect(messages[0].cardInfo).toBeDefined()
+    })
+
     it('无消息列表时返回空数组', () => {
       setupDOM(`<div></div>`)
 

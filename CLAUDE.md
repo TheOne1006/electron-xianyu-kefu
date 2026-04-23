@@ -16,18 +16,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 技术栈 / Tech Stack
 
-- **Framework**: Electron 39.2.6 + electron-vite 5.0.0
-- **语言**: TypeScript 5.9.3
-- **前端**: React 19.2.1 + React Router 7.13.2
-- **日志**: consola 3.4.2
+- **Framework**: Electron + electron-vite
+- **语言**: TypeScript
+- **前端**: React + React Router
+- **日志**: consola
 - **存储**: electron-store（全部持久化）
-- **校验**: zod 4.x（JSON schema 校验）
-- **构建**: esbuild（注入脚本 IIFE），Vite 7.2.6（主应用）
-- **测试**: Vitest 4.1.2
+- **校验**: zod（JSON schema 校验）
+- **构建**: esbuild（注入脚本 IIFE）+ Vite（主应用）
+- **测试**: Vitest
 
 ## 核心目录 / Directory Structure
 
-```
+```text
 src/
 ├── shared/
 │   ├── types.ts                    # 跨进程共用类型（IpcResult<T>、AppConfig、Product、AgentKey…）
@@ -96,7 +96,7 @@ src/
 
 ### 1. 自动回复流程（核心链路）
 
-```
+```text
 闲鱼用户发消息
       │
       ▼
@@ -129,7 +129,7 @@ src/
 
 ### 2. 商品采集流程
 
-```
+```text
 用户浏览闲鱼商品页 (/item)
       │
       ▼
@@ -150,7 +150,7 @@ src/
 
 ### 3. 配置管理流程
 
-```
+```text
 renderer/ConfigsPage → window.electron.config.save(partial)
       │
       ▼
@@ -162,7 +162,7 @@ main/ipc-handlers.ts → app-config-store.saveAppConfig() → electron-store 浅
 
 ## 三进程架构 / Three-Process Architecture
 
-```
+```text
 ┌─────────────┐     contextBridge      ┌─────────────┐     IPC bridge      ┌─────────────┐
 │   渲染进程    │ ◄── preload/index.ts ──►│   主进程     │ ◄── preload-browser ──►│  注入脚本    │
 │   React SPA  │                        │   Node.js   │                       │  闲鱼页面    │
@@ -234,40 +234,3 @@ logger.info('Server started')
 - **lint 检测**: 主进程中完成任何修改后（非 subagent 任务），必须执行 `pnpm lint`
 - 任务完成 = 代码修改 → lint 检测通过 → git commit
 - **注入脚本修改**: `src/injected/` 下修改后需运行 `pnpm build:injected` 重新构建
-
-## Active Technologies
-- TypeScript 5.9.3, esbuild IIFE, jsdom (测试) (028-refactor-injected-scripts)
-- TypeScript 5.9.3 + 无新增依赖（纯 DOM 操作） (021-chatlist-thumbnail)
-- N/A（内存数据结构） (021-chatlist-thumbnail)
-- TypeScript 5.9.3 + Electron 39.2.6 + electron-vite 5.0.0, consola 3.4.2, electron-store (022-auto-reply-with-simulate-click)
-- electron-store (reply-queue、conversation-store 等持久化) (022-auto-reply-with-simulate-click)
-- TypeScript 5.9.3 + Electron 39.2.6, electron-store, consola (023-enter-key-send)
-- TypeScript 5.9.3 + electron 39.2.6, electron-vite 5.0.0, electron-store, consola (026-unify-window-electron-api)
-- electron-store（JSON 文件持久化） (026-unify-window-electron-api)
-- TypeScript 5.9.3 + Electron 39.2.6, React 19.2.1, electron-vite 5.0.0, electron-store 10.x (030-github-release-prep)
-- TypeScript 5.9.3 + electron-store 10.1.0, consola 3.4.2 (032-document-store-integration)
-- electron-store (documents.json) (032-document-store-integration)
-- N/A（无数据结构变更） (033-fix-image-hotlink)
-- TypeScript 5.9.3 + React 19.2.1, Vite 7.2.6 (001-pages-ux-polish)
-- 无变更（electron-store 保持不变） (001-pages-ux-polish)
-
-- TypeScript 5.9.3 + vitest 4.1.2, electron-store（mocked via mock-electron-store.ts） (012-improve-store-test-coverage)
-- N/A（测试使用 mock） (012-improve-store-test-coverage)
-- TypeScript 5.9.3 + vitest 4.1.2, electron-store（通过 `mock-electron-store.ts` mock） (013-safety-filter-agent-tests)
-- electron-store（mocked） (013-safety-filter-agent-tests)
-- TypeScript 5.9.3 | **Primary Dependencies**: React 19.2.1, Electron 39.2.6, electron-store, electron-vite 5.0.0 | **Storage**: electron-store (持久化) | **Testing**: Vitest 4.1.2 (with mock-electron-store) | **Target Platform**: macOS (Electron) | **Project Type**: Desktop App (Electron + React SPA) | **Performance Goals**: 保存操作 <500ms | **Scale/Scope**: 单用户桌面应用 (014-renderer-ipc-alignment)
-- TypeScript 5.9.3 + React 19.2.1 + React, CSS (CSS Grid/Flexbox) (016-configs-page-layout)
-- N/A（仅 UI 变更） (016-configs-page-layout)
-- TypeScript 5.9.3 + React 19.2.1, Electron 39.2.6, electron-store 10.x (017-add-product-main-image)
-- electron-store（products JSON 文件） (017-add-product-main-image)
-- TypeScript 5.9.3 + Electron 39.2.6 + electron-vite 5.0.0 + electron-store (018-merge-ipc-browser-preload)
-- electron-store (JSON 文件持久化) (018-merge-ipc-browser-preload)
-- TypeScript 5.9.3 + Electron 39.2.6（无需新增依赖） (019-simulate-click)
-- N/A（纯内存操作，无持久化） (019-simulate-click)
-
-## Recent Changes
-
-- 029-product-form-modal: 统一 ProductModal 组件（mode='add'|'edit'），文档 checkbox 多选，编辑模式只读展示图片/mainImageUrl
-- 028-refactor-injected-scripts: 重构注入脚本架构
-- 027-document-store: 新增文档 Store + IPC + DocumentsPage
-- 026-unify-window-electron-api: 合并 preload IPC API

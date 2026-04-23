@@ -131,7 +131,10 @@ describe('runAgent', () => {
       [{ type: 'text', sender: '用户', isSelf: false, content: '能便宜吗' }]
     )
 
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ temperature: 0.4 }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ temperature: 0.4 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    )
   })
 
   it('API 返回空内容时抛出错误', async () => {

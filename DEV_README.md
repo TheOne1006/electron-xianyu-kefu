@@ -2,23 +2,23 @@
 
 ## 技术栈
 
-| 类别 | 技术 | 版本 |
-|------|------|------|
-| 框架 | Electron | ^39.2.6 |
-| 构建工具 | electron-vite | ^5.0.0 |
-| 语言 | TypeScript | ^5.9.3 |
-| 前端 | React | ^19.2.1 |
-| 路由 | react-router-dom | ^7.13.2 |
-| 存储 | electron-store | 10.1.0 |
-| 校验 | zod | ^4.3.6 |
-| LLM SDK | openai | ^6.33.0 |
-| 日志 | consola | ^3.4.2 |
-| 测试 | Vitest | ^4.1.2 |
-| 覆盖率 | @vitest/coverage-v8 | 4.1.2 |
-| E2E | Playwright | ^1.59.1 |
-| 打包 | esbuild | (electron-vite 内置) |
-| 代码检查 | ESLint | ^9.39.1 |
-| 格式化 | Prettier | ^3.7.4 |
+| 类别     | 技术                | 版本                 |
+| -------- | ------------------- | -------------------- |
+| 框架     | Electron            | ^39.2.6              |
+| 构建工具 | electron-vite       | ^5.0.0               |
+| 语言     | TypeScript          | ^5.9.3               |
+| 前端     | React               | ^19.2.1              |
+| 路由     | react-router-dom    | ^7.13.2              |
+| 存储     | electron-store      | 10.1.0               |
+| 校验     | zod                 | ^4.3.6               |
+| LLM SDK  | openai              | ^6.33.0              |
+| 日志     | consola             | ^3.4.2               |
+| 测试     | Vitest              | ^4.1.2               |
+| 覆盖率   | @vitest/coverage-v8 | 4.1.2                |
+| E2E      | Playwright          | ^1.59.1              |
+| 打包     | esbuild             | (electron-vite 内置) |
+| 代码检查 | ESLint              | ^9.39.1              |
+| 格式化   | Prettier            | ^3.7.4               |
 
 ## 目录结构
 

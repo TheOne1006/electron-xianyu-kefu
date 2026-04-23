@@ -3,9 +3,10 @@ import { resetMockStoreData, setMockStoreData } from '../mock-electron-store'
 
 // 确保 mock 在导入之前就已经设置好了
 // 使用 dynamic import 延迟导入
-let enqueue: (chatId: string) => { success: boolean; error?: string }
-let dequeue: () => string | null
-let getFirst: () => string | null
+let enqueue: (chatId: string, replyText: string) => { success: boolean; error?: string }
+let dequeue: () => { chatId: string; replyText: string } | null
+let getFirst: () => { chatId: string; replyText: string } | null
+let removeByChatId: (chatId: string) => boolean
 
 beforeEach(async () => {
   // 重置 storeData - 清空并设置 queue 为空数组
@@ -17,37 +18,38 @@ beforeEach(async () => {
   enqueue = mod.enqueue
   dequeue = mod.dequeue
   getFirst = mod.getFirst
+  removeByChatId = mod.removeByChatId
 })
 
 describe('reply-queue', () => {
   describe('enqueue', () => {
-    it('成功加入新 chatId', () => {
-      const result = enqueue('chat-001')
+    it('成功加入新条目', () => {
+      const result = enqueue('chat-001', '回复内容1')
       expect(result.success).toBe(true)
     })
 
     it('重复 chatId 跳过并返回成功', () => {
-      enqueue('chat-002')
-      const result = enqueue('chat-002')
+      enqueue('chat-002', '回复内容2')
+      const result = enqueue('chat-002', '另一条回复')
       expect(result.success).toBe(true)
     })
 
     it('不同 chatId 可以同时存在', () => {
-      enqueue('chat-003')
-      const result = enqueue('chat-004')
+      enqueue('chat-003', '回复A')
+      const result = enqueue('chat-004', '回复B')
       expect(result.success).toBe(true)
     })
   })
 
   describe('dequeue', () => {
-    it('成功移除并返回队首 chatId', () => {
-      enqueue('chat-100')
+    it('成功移除并返回队首条目', () => {
+      enqueue('chat-100', '你好')
       const result = dequeue()
-      expect(result).toBe('chat-100')
+      expect(result).toEqual({ chatId: 'chat-100', replyText: '你好' })
     })
 
-    it('移除后 chatId 不在队列中', () => {
-      enqueue('chat-101')
+    it('移除后队列为空', () => {
+      enqueue('chat-101', '测试')
       dequeue()
       expect(getFirst()).toBeNull()
     })
@@ -64,23 +66,38 @@ describe('reply-queue', () => {
     })
 
     it('返回队列第一个元素（不删除）', () => {
-      enqueue('chat-first')
-      enqueue('chat-second')
-      expect(getFirst()).toBe('chat-first')
-      expect(getFirst()).toBe('chat-first')
+      enqueue('chat-first', '第一条')
+      enqueue('chat-second', '第二条')
+      expect(getFirst()).toEqual({ chatId: 'chat-first', replyText: '第一条' })
+      expect(getFirst()).toEqual({ chatId: 'chat-first', replyText: '第一条' })
+    })
+  })
+
+  describe('removeByChatId', () => {
+    it('移除指定 chatId 的条目', () => {
+      enqueue('chat-a', '回复A')
+      enqueue('chat-b', '回复B')
+      const removed = removeByChatId('chat-a')
+      expect(removed).toBe(true)
+      expect(getFirst()).toEqual({ chatId: 'chat-b', replyText: '回复B' })
+    })
+
+    it('chatId 不存在时返回 false', () => {
+      const removed = removeByChatId('nonexistent')
+      expect(removed).toBe(false)
     })
   })
 
   describe('队列顺序', () => {
     it('FIFO 顺序', () => {
-      enqueue('c1')
-      enqueue('c2')
-      enqueue('c3')
-      expect(getFirst()).toBe('c1')
-      expect(dequeue()).toBe('c1')
-      expect(getFirst()).toBe('c2')
-      expect(dequeue()).toBe('c2')
-      expect(getFirst()).toBe('c3')
+      enqueue('c1', '回复1')
+      enqueue('c2', '回复2')
+      enqueue('c3', '回复3')
+      expect(getFirst()).toEqual({ chatId: 'c1', replyText: '回复1' })
+      expect(dequeue()).toEqual({ chatId: 'c1', replyText: '回复1' })
+      expect(getFirst()).toEqual({ chatId: 'c2', replyText: '回复2' })
+      expect(dequeue()).toEqual({ chatId: 'c2', replyText: '回复2' })
+      expect(getFirst()).toEqual({ chatId: 'c3', replyText: '回复3' })
     })
   })
 })

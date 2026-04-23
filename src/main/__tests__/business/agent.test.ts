@@ -10,15 +10,18 @@ const mockSendToBrowser = vi.fn<(...args: unknown[]) => void>()
 const mockGetMainWindow = vi.fn<(...args: unknown[]) => null>()
 const mockSendToRenderer = vi.fn<(...args: unknown[]) => void>()
 const mockEnqueue = vi.fn<(...args: unknown[]) => { success: boolean; error?: string }>()
-const mockGetReplyQueueFirstChatId = vi.fn<() => string | null>()
+const mockPushReplyToInjector = vi.fn<(...args: unknown[]) => Promise<boolean>>()
+const mockGetReplyQueueFirst = vi.fn<() => { chatId: string; replyText: string } | null>()
+const mockRemoveByChatId = vi.fn<(chatId: string) => boolean>()
 const mockGetConversationById = vi.fn()
 const mockGetProductById = vi.fn()
+const mockHandlePaymentEvent = vi.fn<(...args: unknown[]) => Promise<void>>()
 
 // Mock conversation-store
 vi.mock('../../stores/conversation-store', () => ({
   buildChatId: (...args: [string, string | null]) => mockBuildChatId(...args),
   createOrUpdate: (...args: unknown[]) => mockCreateOrUpdate(...args),
-  appendMessage: (...args: [string, string]) => mockAppendMessage(...args),
+  appendMessage: (...args: [string, string, boolean?]) => mockAppendMessage(...args),
   getById: (...args: unknown[]) => mockGetConversationById(...args)
 }))
 
@@ -37,18 +40,25 @@ vi.mock('../../business/agent-runner', () => ({
 vi.mock('../../browser', () => ({
   sendToBrowser: (...args: [string, unknown]) => mockSendToBrowser(...args),
   getMainWindow: () => mockGetMainWindow(),
-  sendToRenderer: (...args: [string, unknown]) => mockSendToRenderer(...args)
+  sendToRenderer: (...args: [string, unknown]) => mockSendToRenderer(...args),
+  pushReplyToInjector: (...args: unknown[]) => mockPushReplyToInjector(...args)
 }))
 
 // Mock reply-queue
 vi.mock('../../stores/reply-queue', () => ({
-  enqueue: (...args: [string]) => mockEnqueue(...args),
-  getFirst: () => mockGetReplyQueueFirstChatId()
+  enqueue: (...args: unknown[]) => mockEnqueue(...args),
+  getFirst: () => mockGetReplyQueueFirst(),
+  removeByChatId: (chatId: string) => mockRemoveByChatId(chatId)
 }))
 
 // Mock product-store
 vi.mock('../../stores/product-store', () => ({
   getById: (...args: unknown[]) => mockGetProductById(...args)
+}))
+
+// Mock payment-handler
+vi.mock('../../business/payment-handler', () => ({
+  handlePaymentEvent: (...args: unknown[]) => mockHandlePaymentEvent(...args)
 }))
 
 import { handleNewUserMessage, getReply } from '../../../main/business/agent'
@@ -75,6 +85,9 @@ beforeEach(() => {
   mockMapIntentToAgent.mockReturnValue('price')
   mockRunAgent.mockResolvedValue('好的，可以便宜点')
   mockEnqueue.mockReturnValue({ success: true })
+  mockPushReplyToInjector.mockResolvedValue(false)
+  mockRemoveByChatId.mockReturnValue(false)
+  mockHandlePaymentEvent.mockResolvedValue(undefined)
 })
 
 describe('handleNewUserMessage', () => {
@@ -93,7 +106,9 @@ describe('handleNewUserMessage', () => {
     )
     // appendMessage 只在 runAgent 成功后被调用，记录 AI 回复
     expect(mockAppendMessage).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
-    expect(mockEnqueue).toHaveBeenCalledWith('test-user-item123')
+    // 先尝试主动推送，失败后回退到 enqueue
+    expect(mockPushReplyToInjector).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
+    expect(mockEnqueue).toHaveBeenCalledWith('test-user-item123', '好的，可以便宜点')
   })
 
   it('空消息不处理', async () => {
@@ -109,6 +124,15 @@ describe('handleNewUserMessage', () => {
     // runAgent 失败时 appendMessage 不会被调用，因为 agent.ts 中 catch 里没有调用 appendMessage
     // 但函数不会崩溃
     expect(mockAppendMessage).not.toHaveBeenCalled()
+  })
+
+  it('direct push 成功时清除队列中的残留条目', async () => {
+    mockPushReplyToInjector.mockResolvedValue(true)
+    const packet = createTestPacket('便宜点吧')
+    await handleNewUserMessage(packet)
+
+    expect(mockRemoveByChatId).toHaveBeenCalledWith('test-user-item123')
+    expect(mockEnqueue).not.toHaveBeenCalled()
   })
 
   it('最后一条为 AI 消息时不处理也不记录', async () => {
@@ -131,6 +155,62 @@ describe('handleNewUserMessage', () => {
     await handleNewUserMessage(packet)
     expect(mockClassifyIntent).not.toHaveBeenCalled()
   })
+
+  it('支付卡片消息拦截后调用 handlePaymentEvent，不走 AI 流程', async () => {
+    const chatInfo: ChatInfo = {
+      userName: '测试用户',
+      itemId: 'item123',
+      isMyProduct: true
+    }
+    const messages: ChatMessage[] = [
+      {
+        type: 'card',
+        sender: '系统通知',
+        isSelf: false,
+        cardInfo: { title: '', price: '', href: '' },
+        paymentInfo: { title: '我已付款，等待你发货', description: '请包装好商品' }
+      }
+    ]
+    const packet: Conversation = { chatInfo, messages }
+
+    await handleNewUserMessage(packet)
+
+    // 支付卡片消息应先追加到对话历史
+    expect(mockAppendMessage).toHaveBeenCalledWith(
+      'test-user-item123',
+      '[支付] 我已付款，等待你发货',
+      false
+    )
+
+    expect(mockHandlePaymentEvent).toHaveBeenCalledWith(chatInfo, {
+      title: '我已付款，等待你发货',
+      description: '请包装好商品'
+    })
+    expect(mockClassifyIntent).not.toHaveBeenCalled()
+    expect(mockRunAgent).not.toHaveBeenCalled()
+  })
+
+  it('普通 card 消息不触发支付拦截', async () => {
+    const chatInfo: ChatInfo = {
+      userName: '测试用户',
+      itemId: 'item123',
+      isMyProduct: true
+    }
+    const messages: ChatMessage[] = [
+      {
+        type: 'card',
+        sender: '买家',
+        isSelf: false,
+        cardInfo: { title: '商品卡片', price: '¥99', href: 'https://example.com' }
+      }
+    ]
+    const packet: Conversation = { chatInfo, messages }
+
+    await handleNewUserMessage(packet)
+
+    expect(mockHandlePaymentEvent).not.toHaveBeenCalled()
+    expect(mockClassifyIntent).not.toHaveBeenCalled()
+  })
 })
 
 describe('getReply', () => {
@@ -139,38 +219,20 @@ describe('getReply', () => {
   })
 
   it('队列为空时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue(null)
+    mockGetReplyQueueFirst.mockReturnValue(null)
     const result = getReply()
     expect(result).toBeNull()
   })
 
   it('对话不存在时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
+    mockGetReplyQueueFirst.mockReturnValue({ chatId: 'chat-1', replyText: '你好' })
     mockGetConversationById.mockReturnValue(null)
     const result = getReply()
     expect(result).toBeNull()
   })
 
-  it('对话存在但消息数组为空时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
-    mockGetConversationById.mockReturnValue({
-      chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
-      messages: []
-    })
-    expect(getReply()).toBeNull()
-  })
-
-  it('最后一条消息非AI发送时返回 null', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
-    mockGetConversationById.mockReturnValue({
-      chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
-      messages: [{ type: 'text', sender: 'u', isSelf: false, content: 'hello' }]
-    })
-    expect(getReply()).toBeNull()
-  })
-
-  it('成功场景返回 chatInfo 和 replyText', () => {
-    mockGetReplyQueueFirstChatId.mockReturnValue('chat-1')
+  it('成功场景返回 chatInfo 和队列中的 replyText', () => {
+    mockGetReplyQueueFirst.mockReturnValue({ chatId: 'chat-1', replyText: '好的，便宜点' })
     mockGetConversationById.mockReturnValue({
       chatInfo: { userName: 'u', itemId: 'i', isMyProduct: false },
       messages: [{ type: 'text', sender: 'AI', isSelf: true, content: '好的，便宜点' }]

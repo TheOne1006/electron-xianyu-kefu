@@ -40,6 +40,14 @@ import { ipcMain } from 'electron'
 import { registerIpcHandlers } from '../ipc-handlers'
 import { setMockStoreData, resetMockStoreData } from './mock-electron-store'
 
+// 辅助：从 ipcMain.handle mock 提取指定 channel 的 handler
+function getHandler(channel: string): (...args: unknown[]) => Promise<unknown> {
+  const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
+  const found = calls.find((call) => call[0] === channel)
+  expect(found).toBeDefined()
+  return found![1] as (...args: unknown[]) => Promise<unknown>
+}
+
 describe('ipc-handlers', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -57,23 +65,17 @@ describe('ipc-handlers', () => {
   })
 
   describe('ping', () => {
-    it('返回 pong', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const pingHandler = calls.find((call) => call[0] === 'ping')
-      expect(pingHandler).toBeDefined()
-      const handler = pingHandler?.[1] as () => { code: number; message: string; data: string }
-      const result = handler()
+    it('返回 pong', async () => {
+      const handler = getHandler('ping')
+      const result = await handler()
       expect(result).toEqual({ code: 0, message: '', data: 'pong' })
     })
   })
 
   describe('config:get', () => {
-    it('返回 app config', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const configHandler = calls.find((call) => call[0] === 'config:get')
-      expect(configHandler).toBeDefined()
-      const handler = configHandler?.[1] as () => { code: number; data: unknown }
-      const result = handler()
+    it('返回 app config', async () => {
+      const handler = getHandler('config:get')
+      const result = (await handler()) as { code: number; data: unknown }
       expect(result.code).toBe(0)
       expect(result.data).toHaveProperty('model')
       expect(result.data).toHaveProperty('apiKey')
@@ -81,126 +83,84 @@ describe('ipc-handlers', () => {
   })
 
   describe('config:save', () => {
-    it('保存部分配置', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const saveHandler = calls.find((call) => call[0] === 'config:save')
-      expect(saveHandler).toBeDefined()
-      const handler = saveHandler?.[1] as () => { code: number }
-      const result = handler()
+    it('保存部分配置', async () => {
+      const handler = getHandler('config:save')
+      const result = (await handler(null, {})) as { code: number }
       expect(result.code).toBe(0)
     })
   })
 
   describe('product:list', () => {
-    it('返回产品列表', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const listHandler = calls.find((call) => call[0] === 'product:list')
-      expect(listHandler).toBeDefined()
-      const handler = listHandler?.[1] as () => { code: number; data: unknown }
-      const result = handler()
+    it('返回产品列表', async () => {
+      const handler = getHandler('product:list')
+      const result = (await handler()) as { code: number; data: unknown }
       expect(result.code).toBe(0)
       expect(Array.isArray(result.data)).toBe(true)
     })
   })
 
   describe('product:getById', () => {
-    it('返回指定产品', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const getByIdHandler = calls.find((call) => call[0] === 'product:getById')
-      expect(getByIdHandler).toBeDefined()
-      const handler = getByIdHandler?.[1] as (
-        _event: unknown,
-        { id }: { id: string }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { id: 'p1' })
+    it('返回指定产品', async () => {
+      const handler = getHandler('product:getById')
+      const result = (await handler(null, { id: 'p1' })) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('product:upsert', () => {
-    it('保存产品', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const upsertHandler = calls.find((call) => call[0] === 'product:upsert')
-      expect(upsertHandler).toBeDefined()
-      const handler = upsertHandler?.[1] as (
-        _event: unknown,
-        product: unknown
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { id: 'p-new', title: '新商品' })
+    it('保存产品', async () => {
+      const handler = getHandler('product:upsert')
+      const result = (await handler(null, {
+        id: 'p-new',
+        title: '新商品'
+      })) as { code: number; data: unknown }
       expect(result.code).toBe(0)
       expect(result.data).toHaveProperty('id', 'p-new')
     })
   })
 
   describe('product:deleteById', () => {
-    it('删除产品', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const deleteHandler = calls.find((call) => call[0] === 'product:deleteById')
-      expect(deleteHandler).toBeDefined()
-      const handler = deleteHandler?.[1] as (
-        _event: unknown,
-        { id }: { id: string }
-      ) => { code: number }
-      const result = handler(null as never, { id: 'p1' })
+    it('删除产品', async () => {
+      const handler = getHandler('product:deleteById')
+      const result = (await handler(null, { id: 'p1' })) as { code: number }
       expect(result.code).toBe(0)
     })
   })
 
   describe('agent-config:all', () => {
-    it('返回所有 agent 配置', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const allHandler = calls.find((call) => call[0] === 'agent-config:all')
-      expect(allHandler).toBeDefined()
-      const handler = allHandler?.[1] as () => { code: number; data: unknown }
-      const result = handler()
+    it('返回所有 agent 配置', async () => {
+      const handler = getHandler('agent-config:all')
+      const result = (await handler()) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('agent-config:getById', () => {
-    it('返回指定 agent 配置', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const getByIdHandler = calls.find((call) => call[0] === 'agent-config:getById')
-      expect(getByIdHandler).toBeDefined()
-      const handler = getByIdHandler?.[1] as (
-        _event: unknown,
-        { key }: { key: string }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { key: 'classify' })
+    it('返回指定 agent 配置', async () => {
+      const handler = getHandler('agent-config:getById')
+      const result = (await handler(null, { key: 'classify' })) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('agent-config:update', () => {
-    it('更新 agent 配置', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const updateHandler = calls.find((call) => call[0] === 'agent-config:update')
-      expect(updateHandler).toBeDefined()
-      const handler = updateHandler?.[1] as (
-        _event: unknown,
-        args: { key: string; config: unknown }
-      ) => { code: number }
-      const result = handler(null as never, {
+    it('更新 agent 配置', async () => {
+      const handler = getHandler('agent-config:update')
+      const result = (await handler(null, {
         key: 'classify',
         config: { temperature: 0.5, maxTokens: 100, prompt: 'test' }
-      })
+      })) as { code: number }
       expect(result.code).toBe(0)
     })
   })
 
   describe('agent-config:upsert', () => {
-    it('插入或更新 agent 配置', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const upsertHandler = calls.find((call) => call[0] === 'agent-config:upsert')
-      expect(upsertHandler).toBeDefined()
-      const handler = upsertHandler?.[1] as (
-        _event: unknown,
-        args: { key: string; config: unknown }
-      ) => { code: number }
-      const result = handler(null as never, {
+    it('插入或更新 agent 配置', async () => {
+      const handler = getHandler('agent-config:upsert')
+      const result = (await handler(null, {
         key: 'classify',
         config: { temperature: 0.5, maxTokens: 100, prompt: 'test' }
-      })
+      })) as { code: number }
       expect(result.code).toBe(0)
     })
   })
@@ -216,117 +176,87 @@ describe('ipc-handlers', () => {
       registerIpcHandlers()
     })
 
-    it('返回对话列表', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const listHandler = calls.find((call) => call[0] === 'conversation:list')
-      expect(listHandler).toBeDefined()
-      const handler = listHandler?.[1] as () => { code: number; data: unknown }
-      const result = handler()
+    it('返回对话列表', async () => {
+      const handler = getHandler('conversation:list')
+      const result = (await handler()) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('conversation:getById', () => {
-    it('返回指定对话', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const getByIdHandler = calls.find((call) => call[0] === 'conversation:getById')
-      expect(getByIdHandler).toBeDefined()
-      const handler = getByIdHandler?.[1] as (
-        _event: unknown,
-        { chatId }: { chatId: string }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { chatId: 'chat-1' })
+    it('返回指定对话', async () => {
+      const handler = getHandler('conversation:getById')
+      const result = (await handler(null, { chatId: 'chat-1' })) as {
+        code: number
+        data: unknown
+      }
       expect(result.code).toBe(0)
     })
   })
 
   describe('conversation:createOrUpdate', () => {
-    it('创建或更新对话', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const upsertHandler = calls.find((call) => call[0] === 'conversation:createOrUpdate')
-      expect(upsertHandler).toBeDefined()
-      const handler = upsertHandler?.[1] as (
-        _event: unknown,
-        data: { chatInfo: { userName: string; itemId: string }; messages: unknown[] }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, {
+    it('创建或更新对话', async () => {
+      const handler = getHandler('conversation:createOrUpdate')
+      const result = (await handler(null, {
         chatInfo: { userName: 'test-user', itemId: 'p1' },
         messages: []
-      })
+      })) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('conversation:delete', () => {
-    it('删除对话', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const deleteHandler = calls.find((call) => call[0] === 'conversation:delete')
-      expect(deleteHandler).toBeDefined()
-      const handler = deleteHandler?.[1] as (
-        _event: unknown,
-        { chatId }: { chatId: string }
-      ) => { code: number }
-      const result = handler(null as never, { chatId: 'chat-1' })
+    it('删除对话', async () => {
+      const handler = getHandler('conversation:delete')
+      const result = (await handler(null, { chatId: 'chat-1' })) as { code: number }
       expect(result.code).toBe(0)
     })
   })
 
   describe('reply-queue:dequeue', () => {
-    it('出队', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const dequeueHandler = calls.find((call) => call[0] === 'reply-queue:dequeue')
-      expect(dequeueHandler).toBeDefined()
-      const handler = dequeueHandler?.[1] as () => { code: number; data: string | null }
-      const result = handler()
+    it('出队', async () => {
+      const handler = getHandler('reply-queue:dequeue')
+      const result = (await handler()) as { code: number; data: string | null }
       expect(result.code).toBe(0)
     })
   })
 
   describe('reply-queue:enqueue', () => {
-    it('成功追加消息并入队', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const enqueueHandler = calls.find((call) => call[0] === 'reply-queue:enqueue')
-      expect(enqueueHandler).toBeDefined()
-      const handler = enqueueHandler?.[1] as (
-        _event: unknown,
-        args: { chatId: string; content: string }
-      ) => { code: number }
-      const result = handler(null as never, { chatId: 'chat-1', content: '你好' })
+    it('成功追加消息并入队', async () => {
+      const handler = getHandler('reply-queue:enqueue')
+      const result = (await handler(null, {
+        chatId: 'chat-1',
+        content: '你好'
+      })) as { code: number }
       expect(result.code).toBe(0)
     })
 
-    it('入队失败时仍返回成功（幂等 chatId）', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const enqueueHandler = calls.find((call) => call[0] === 'reply-queue:enqueue')
-      expect(enqueueHandler).toBeDefined()
-      const handler = enqueueHandler?.[1] as (
-        _event: unknown,
-        args: { chatId: string; content: string }
-      ) => { code: number }
+    it('入队失败时仍返回成功（幂等 chatId）', async () => {
+      const handler = getHandler('reply-queue:enqueue')
 
       // 第一次入队
-      const result1 = handler(null as never, { chatId: 'chat-1', content: '消息1' })
+      const result1 = (await handler(null, {
+        chatId: 'chat-1',
+        content: '消息1'
+      })) as { code: number }
       expect(result1.code).toBe(0)
 
       // 第二次入队相同 chatId（幂等失败，但 handler 仍然返回 ok）
-      const result2 = handler(null as never, { chatId: 'chat-1', content: '消息2' })
+      const result2 = (await handler(null, {
+        chatId: 'chat-1',
+        content: '消息2'
+      })) as { code: number }
       expect(result2.code).toBe(0)
     })
   })
 
   describe('conversation:upsert', () => {
     it('处理新用户消息', async () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const upsertHandler = calls.find((call) => call[0] === 'conversation:upsert')
-      expect(upsertHandler).toBeDefined()
-      const handler = upsertHandler?.[1] as (
-        _event: unknown,
-        data: { chatInfo: { userName: string; itemId: string }; messages: unknown[] }
-      ) => { code: number }
-      const result = await handler(null as never, {
+      const handler = getHandler('conversation:upsert')
+      const result = (await handler(null, {
         chatInfo: { userName: 'test-user', itemId: 'item-123' },
         messages: []
-      })
+      })) as { code: number }
       expect(result.code).toBe(0)
     })
   })
@@ -366,21 +296,13 @@ describe('ipc-handlers', () => {
 
     it('调用 sendInputEvent 发送鼠标事件序列', async () => {
       const { mockWebContents } = await import('./__mocks__/electron')
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const simulateClickHandler = calls.find((call) => call[0] === 'simulate:click')
-      expect(simulateClickHandler).toBeDefined()
-
-      const handler = simulateClickHandler?.[1] as (
-        event: { sender: unknown },
-        x: number,
-        y: number
-      ) => Promise<void>
+      const handler = getHandler('simulate:click')
 
       // 模拟事件对象
       const mockEvent = { sender: 'mock-sender' }
 
       // 调用 handler（异步）
-      await handler(mockEvent as never, 100, 200)
+      await handler(mockEvent, 100, 200)
 
       // 验证 sendInputEvent 被调用多次（移动步数 + mouseDown + mouseUp）
       expect(mockWebContents.sendInputEvent).toHaveBeenCalled()
@@ -411,20 +333,12 @@ describe('ipc-handlers', () => {
       const { BrowserWindow } = await import('electron')
       vi.mocked(BrowserWindow.fromWebContents).mockReturnValueOnce(null)
 
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const simulateClickHandler = calls.find((call) => call[0] === 'simulate:click')
-      expect(simulateClickHandler).toBeDefined()
-
-      const handler = simulateClickHandler?.[1] as (
-        event: { sender: unknown },
-        x: number,
-        y: number
-      ) => Promise<void>
+      const handler = getHandler('simulate:click')
 
       const mockEvent = { sender: 'mock-sender' }
 
       // 返回错误对象但不抛出异常
-      const result = await handler(mockEvent as never, 100, 200)
+      const result = await handler(mockEvent, 100, 200)
       expect(result).toEqual({ code: 3004, message: '窗口不存在', data: null })
     })
   })
@@ -438,13 +352,10 @@ describe('ipc-handlers', () => {
 
     it('成功模拟中文输入', async () => {
       const { mockWebContents } = await import('./__mocks__/electron')
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const handler = calls.find((call) => call[0] === 'simulate:chinese-input')?.[1]
-
-      expect(handler).toBeDefined()
+      const handler = getHandler('simulate:chinese-input')
 
       const mockEvent = { sender: 'mock-sender' }
-      const result = await handler(mockEvent, '你好世界')
+      const result = (await handler(mockEvent, '你好世界')) as { code: number }
 
       expect(result.code).toBe(0)
       expect(mockWebContents.insertText).toHaveBeenCalled()
@@ -454,10 +365,7 @@ describe('ipc-handlers', () => {
       const { BrowserWindow } = await import('electron')
       vi.mocked(BrowserWindow.fromWebContents).mockReturnValueOnce(null)
 
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const handler = calls.find((call) => call[0] === 'simulate:chinese-input')?.[1]
-
-      expect(handler).toBeDefined()
+      const handler = getHandler('simulate:chinese-input')
 
       const mockEvent = { sender: 'mock-sender' }
       const result = await handler(mockEvent, '你好')
@@ -475,13 +383,10 @@ describe('ipc-handlers', () => {
 
     it('成功模拟 Enter 键发送', async () => {
       const { mockWebContents } = await import('./__mocks__/electron')
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const handler = calls.find((call) => call[0] === 'simulate:enter-key')?.[1]
-
-      expect(handler).toBeDefined()
+      const handler = getHandler('simulate:enter-key')
 
       const mockEvent = { sender: 'mock-sender' }
-      const result = await handler(mockEvent, { x: 100, y: 200 })
+      const result = (await handler(mockEvent, { x: 100, y: 200 })) as { code: number }
 
       expect(result.code).toBe(0)
       // 验证鼠标点击事件
@@ -500,10 +405,7 @@ describe('ipc-handlers', () => {
       const { BrowserWindow } = await import('electron')
       vi.mocked(BrowserWindow.fromWebContents).mockReturnValueOnce(null)
 
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const handler = calls.find((call) => call[0] === 'simulate:enter-key')?.[1]
-
-      expect(handler).toBeDefined()
+      const handler = getHandler('simulate:enter-key')
 
       const mockEvent = { sender: 'mock-sender' }
       const result = await handler(mockEvent, { x: 100, y: 200 })
@@ -513,55 +415,40 @@ describe('ipc-handlers', () => {
   })
 
   describe('document:list', () => {
-    it('返回文档标题列表', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const listHandler = calls.find((call) => call[0] === 'document:list')
-      expect(listHandler).toBeDefined()
-      const handler = listHandler?.[1] as () => { code: number; data: unknown }
-      const result = handler()
+    it('返回文档标题列表', async () => {
+      const handler = getHandler('document:list')
+      const result = (await handler()) as { code: number; data: unknown }
       expect(result.code).toBe(0)
       expect(Array.isArray(result.data)).toBe(true)
     })
   })
 
   describe('document:get', () => {
-    it('返回指定文档内容', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const getHandler = calls.find((call) => call[0] === 'document:get')
-      expect(getHandler).toBeDefined()
-      const handler = getHandler?.[1] as (
-        _event: unknown,
-        { key }: { key: string }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { key: '售后说明' })
+    it('返回指定文档内容', async () => {
+      const handler = getHandler('document:get')
+      const result = (await handler(null, { key: '售后说明' })) as {
+        code: number
+        data: unknown
+      }
       expect(result.code).toBe(0)
     })
   })
 
   describe('document:upsert', () => {
-    it('创建或更新文档', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const upsertHandler = calls.find((call) => call[0] === 'document:upsert')
-      expect(upsertHandler).toBeDefined()
-      const handler = upsertHandler?.[1] as (
-        _event: unknown,
-        args: { key: string; content: string }
-      ) => { code: number; data: unknown }
-      const result = handler(null as never, { key: '新文档', content: '新内容' })
+    it('创建或更新文档', async () => {
+      const handler = getHandler('document:upsert')
+      const result = (await handler(null, {
+        key: '新文档',
+        content: '新内容'
+      })) as { code: number; data: unknown }
       expect(result.code).toBe(0)
     })
   })
 
   describe('document:delete', () => {
-    it('删除文档', () => {
-      const calls = (ipcMain.handle as ReturnType<typeof vi.fn>).mock.calls
-      const deleteHandler = calls.find((call) => call[0] === 'document:delete')
-      expect(deleteHandler).toBeDefined()
-      const handler = deleteHandler?.[1] as (
-        _event: unknown,
-        { key }: { key: string }
-      ) => { code: number }
-      const result = handler(null as never, { key: '售后说明' })
+    it('删除文档', async () => {
+      const handler = getHandler('document:delete')
+      const result = (await handler(null, { key: '售后说明' })) as { code: number }
       expect(result.code).toBe(0)
     })
   })

@@ -1,19 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useTheme } from '../contexts/ThemeContext'
+import { getRouteTitle } from '../routes/route-meta'
 
-const pageTitles: Record<string, string> = {
-  '/configs': '设置',
-  '/prompts': '提示词管理',
-  '/chats': '聊天记录',
-  '/products': '产品',
-  '/agent-config': 'Agent',
-  '/conversations': '对话',
-  '/documents': '文档库',
-  '/quick-start': '快速开始',
-  '/q-and-a': 'Q&A'
-}
-
+/**
+ * 渲染页面标题、主题切换与浏览器控制入口。
+ */
 export function AppHeader(): React.JSX.Element {
   const location = useLocation()
   const [launching, setLaunching] = useState(false)
@@ -67,7 +59,7 @@ export function AppHeader(): React.JSX.Element {
           margin: 0
         }}
       >
-        {pageTitles[location.pathname] ?? '闲鱼客服'}
+        {getRouteTitle(location.pathname) ?? '闲鱼客服'}
       </h1>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>

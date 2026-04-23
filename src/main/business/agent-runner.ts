@@ -11,13 +11,15 @@ import { consola } from 'consola'
 
 const logger = consola.withTag('agent-runner')
 
+const LLM_TIMEOUT_MS = 30_000
+
 /**
  * 调用 LLM 生成回复
  *
  * @param messages - 消息列表
  * @param agentConfig - Agent 配置（temperature、maxTokens）
  * @returns 返回官方 ChatCompletion 类型
- * @throws API Key 未配置或请求失败时抛错
+ * @throws API Key 未配置、请求失败或超时时抛错
  */
 async function createCompletion(
   messages: ChatCompletionMessageParam[],
@@ -34,14 +36,29 @@ async function createCompletion(
     baseURL: appConfig.baseURL
   })
 
-  const completion = await client.chat.completions.create({
-    model: appConfig.model,
-    messages,
-    temperature: agentConfig.temperature,
-    max_tokens: agentConfig.maxTokens
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS)
 
-  return completion
+  try {
+    const completion = await client.chat.completions.create(
+      {
+        model: appConfig.model,
+        messages,
+        temperature: agentConfig.temperature,
+        max_tokens: agentConfig.maxTokens
+      },
+      { signal: controller.signal }
+    )
+
+    return completion
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`[LLMClient] 请求超时（${LLM_TIMEOUT_MS / 1000}秒）`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 /**

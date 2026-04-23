@@ -1,21 +1,27 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { SessionList } from '../components/ConversationComponents/SessionList'
 import { MessageList } from '../components/ConversationComponents/MessageList'
 import { Input } from '../components/ConversationComponents/Input'
+import { ResizableSplit } from '../components/ResizableSplit'
 import { useToast } from '../contexts/ToastContext'
-import type { Conversation, SendMessageResult } from '@shared/types'
-
-type ViewState = 'idle' | 'loading' | 'error' | 'viewing'
+import type { Conversation, Product, SendMessageResult } from '@shared/types'
 
 export function ConversationsPage(): React.JSX.Element {
   const [sessions, setSessions] = useState<Conversation[]>([])
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [conversation, setConversation] = useState<Conversation | null>(null)
-  const [viewState, setViewState] = useState<ViewState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [messagesLoading, setMessagesLoading] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [leftWidth, setLeftWidth] = useState(280)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const { showToast } = useToast()
+
+  const productsMap = useMemo(() => {
+    const map = new Map<string, Product>()
+    products.forEach((p) => map.set(p.id, p))
+    return map
+  }, [products])
 
   const loadSessions = useCallback(async () => {
     setError(null)
@@ -24,7 +30,15 @@ export function ConversationsPage(): React.JSX.Element {
       setSessions(data)
     } catch {
       setError('加载会话列表失败')
-      setViewState('error')
+    }
+  }, [])
+
+  const loadProducts = useCallback(async () => {
+    try {
+      const data = await window.electron.product.list()
+      setProducts(data)
+    } catch {
+      // 商品加载失败不阻塞页面
     }
   }, [])
 
@@ -36,14 +50,11 @@ export function ConversationsPage(): React.JSX.Element {
       const data = await window.electron.conversation.getById(chatId)
       if (data) {
         setConversation(data)
-        setViewState('viewing')
       } else {
         setError('会话不存在')
-        setViewState('error')
       }
     } catch {
       setError('加载消息失败')
-      setViewState('error')
     } finally {
       setMessagesLoading(false)
     }
@@ -71,7 +82,8 @@ export function ConversationsPage(): React.JSX.Element {
 
   useEffect(() => {
     loadSessions()
-  }, [loadSessions])
+    loadProducts()
+  }, [loadSessions, loadProducts])
 
   const handleSend = async (content: string): Promise<SendMessageResult> => {
     if (!selectedChatId) return { success: false, error: '未选择会话' }
@@ -79,9 +91,7 @@ export function ConversationsPage(): React.JSX.Element {
     try {
       const result = await window.electron.replyQueue.enqueue(selectedChatId, content)
       if (result.code === 0) {
-        // 重新加载消息
         await loadConversation(selectedChatId)
-        // 重新加载会话列表（更新最后消息预览）
         await loadSessions()
         return { success: true }
       }
@@ -89,12 +99,6 @@ export function ConversationsPage(): React.JSX.Element {
     } catch {
       return { success: false, error: '发送失败' }
     }
-  }
-
-  const handleClose = (): void => {
-    setSelectedChatId(null)
-    setConversation(null)
-    setViewState('idle')
   }
 
   const handleDelete = async (chatId: string): Promise<void> => {
@@ -107,7 +111,6 @@ export function ConversationsPage(): React.JSX.Element {
         if (selectedChatId === chatId) {
           setSelectedChatId(null)
           setConversation(null)
-          setViewState('idle')
         }
       }
     } catch {
@@ -115,70 +118,82 @@ export function ConversationsPage(): React.JSX.Element {
     }
   }
 
-  // 未选中会话时的空状态
-  if (!selectedChatId && viewState !== 'loading') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div
+  // 获取当前会话关联的商品信息
+  const currentProduct = conversation?.chatInfo.itemId
+    ? productsMap.get(conversation.chatInfo.itemId)
+    : undefined
+
+  // 右侧面板内容
+  const rightPanel = selectedChatId ? (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 顶部栏 — 显示当前会话用户名 + 商品信息 */}
+      <div
+        style={{
+          padding: 'var(--space-3) var(--space-4)',
+          borderBottom: '1px solid var(--border-default)',
+          backgroundColor: 'var(--bg-surface)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-3)'
+        }}
+      >
+        <h2
           style={{
-            padding: 'var(--space-4)',
-            borderBottom: '1px solid var(--border-default)',
-            backgroundColor: 'var(--bg-surface)'
+            fontSize: 'var(--text-base)',
+            fontWeight: 600,
+            margin: 0,
+            color: 'var(--text-primary)'
           }}
         >
-          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, margin: 0 }}>聊天记录</h2>
-        </div>
-        <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
-          {/* 左侧会话列表 */}
-          <div
-            style={{
-              width: '280px',
-              flexShrink: 0,
-              borderRight: '1px solid var(--border-default)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            <SessionList
-              sessions={sessions}
-              selectedId={null}
-              onSelect={loadConversation}
-              isLoading={false}
-              error={viewState === 'error' ? error : null}
-              onRetry={loadSessions}
-              onDelete={handleDelete}
-            />
-          </div>
+          {conversation?.chatInfo.userName || '聊天记录'}
+        </h2>
+        {currentProduct && (
+          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+            {currentProduct.title}
+          </span>
+        )}
+      </div>
 
-          {/* 右侧空状态 */}
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-secondary)'
-            }}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                style={{ margin: '0 auto var(--space-3)', opacity: 0.5 }}
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              <div>选择一个会话开始查看</div>
-            </div>
-          </div>
+      <MessageList
+        messages={conversation?.messages || []}
+        isLoading={messagesLoading}
+        error={error}
+        onRetry={() => selectedChatId && loadConversation(selectedChatId)}
+      />
+
+      <Input onSend={handleSend} disabled={!selectedChatId} />
+    </div>
+  ) : (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        color: 'var(--text-secondary)'
+      }}
+    >
+      <div style={{ textAlign: 'center', opacity: 0.6 }}>
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          style={{ margin: '0 auto var(--space-4)' }}
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <div style={{ fontSize: 'var(--text-sm)', marginBottom: 'var(--space-1)' }}>
+          选择一个会话开始查看
+        </div>
+        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-disabled)' }}>
+          从左侧列表点击会话
         </div>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -187,54 +202,30 @@ export function ConversationsPage(): React.JSX.Element {
         style={{
           padding: 'var(--space-4)',
           borderBottom: '1px solid var(--border-default)',
-          backgroundColor: 'var(--bg-surface)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-3)'
+          backgroundColor: 'var(--bg-surface)'
         }}
       >
-        <button
-          onClick={handleClose}
-          style={{
-            padding: 'var(--space-1)',
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--text-secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, margin: 0 }}>
-          {conversation?.chatInfo.userName || '聊天记录'}
-        </h2>
+        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, margin: 0 }}>聊天记录</h2>
       </div>
 
-      {/* 主体区域 — 全宽消息视图，不再显示左侧会话列表 */}
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <MessageList
-          messages={conversation?.messages || []}
-          isLoading={messagesLoading}
-          error={viewState === 'error' ? error : null}
-          onRetry={() => selectedChatId && loadConversation(selectedChatId)}
-        />
-
-        <Input onSend={handleSend} disabled={viewState !== 'viewing'} />
-      </div>
+      {/* 主体区域 — 可拖拽双面板 */}
+      <ResizableSplit
+        leftWidth={leftWidth}
+        onLeftWidthChange={setLeftWidth}
+        left={
+          <SessionList
+            sessions={sessions}
+            selectedId={selectedChatId}
+            onSelect={loadConversation}
+            isLoading={false}
+            error={error}
+            onRetry={loadSessions}
+            onDelete={handleDelete}
+            products={productsMap}
+          />
+        }
+        right={rightPanel}
+      />
     </div>
   )
 }

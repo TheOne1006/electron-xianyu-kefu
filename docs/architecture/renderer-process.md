@@ -137,13 +137,13 @@ User action → setState → 调用 Electron API → showToast 反馈
 
 ### 页面组件
 
-| 页面               | 文件                              | 说明                            |
-| ------------------ | --------------------------------- | ------------------------------- |
-| ConfigsPage        | `pages/ConfigsPage.tsx`           | 应用配置页                      |
-| AgentConfigPage    | `pages/AgentConfigPage.tsx`       | Agent 配置页（5 个 Agent 卡片） |
-| ProductsPage       | `pages/ProductsPage.tsx`          | 商品管理页（统一弹窗表单）      |
-| DocumentsPage      | `pages/DocumentsPage.tsx`         | 文档库管理页                    |
-| ConversationsPage  | `pages/ConversationsPage.tsx`     | 对话历史页                      |
+| 页面              | 文件                          | 说明                            |
+| ----------------- | ----------------------------- | ------------------------------- |
+| ConfigsPage       | `pages/ConfigsPage.tsx`       | 应用配置页                      |
+| AgentConfigPage   | `pages/AgentConfigPage.tsx`   | Agent 配置页（5 个 Agent 卡片） |
+| ProductsPage      | `pages/ProductsPage.tsx`      | 商品管理页（统一弹窗表单）      |
+| DocumentsPage     | `pages/DocumentsPage.tsx`     | 文档库管理页                    |
+| ConversationsPage | `pages/ConversationsPage.tsx` | 对话历史页                      |
 
 ### 上下文
 

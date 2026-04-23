@@ -1,6 +1,6 @@
 {
   "name": "electron-xianyu-kefu",
-  "version": "0.3.3",
+  "version": "0.5.1",
   "packageManager": "pnpm@10.28.0",
   "type": "module",
   "description": "基于 Electron 的闲鱼客服自动化工具，通过 AI 助手自动处理客户咨询",
@@ -35,11 +35,14 @@
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
-    "build:mac": "npm run build:injected && electron-vite build && dotenv electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux",
+    "build:mac": "npm run build && dotenv electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:e2e": "esbuild tests/e2e/runner.ts --bundle --format=cjs --platform=node --external:electron --outfile=dist/e2e-runner.cjs",
+    "test:e2e": "pnpm build:e2e && electron dist/e2e-runner.cjs",
+    "test:e2e:watch": "pnpm build:e2e && electron dist/e2e-runner.cjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

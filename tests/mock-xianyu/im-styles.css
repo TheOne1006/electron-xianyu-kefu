@@ -1,0 +1,387 @@
+/**
+ * 闲鱼 IM 模拟页面 — 样式
+ *
+ * 使用 CSS Modules 风格的类名（xxx--suffix），
+ * 确保注入脚本的 [class*="xxx--"] 选择器能正确命中。
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  color: #333;
+  background: #f5f5f5;
+  height: 100vh;
+  overflow: hidden;
+}
+
+main {
+  display: flex;
+  height: 100vh;
+}
+
+/* ─── 左侧会话列表 ─────────────────────────────────────── */
+
+.conversation-list--mock {
+  width: 300px;
+  background: #fafafa;
+  border-right: 1px solid #e8e8e8;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.conversation-item--mock {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.conversation-item--mock:hover {
+  background: #f0f0f0;
+}
+
+.conversation-item--mock.active {
+  background: #e6f7ff;
+}
+
+/* 系统消息样式 */
+.conversation-item--mock.system-item {
+  background: #fffbf0;
+}
+
+/* ─── 未读标记 ──────────────────────────────────────────── */
+
+.ant-scroll-number {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 11px;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.ant-badge-count {
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+/* ─── 右侧聊天区域 ─────────────────────────────────────── */
+
+.chat-area--mock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  min-width: 0;
+}
+
+/* ─── 聊天头部 ──────────────────────────────────────────── */
+
+.conv-header--mock {
+  padding: 12px 20px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.conv-header--mock .text1--mock {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
+}
+
+.conv-header--mock a {
+  color: #1677ff;
+  text-decoration: none;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.conv-header--mock a:hover {
+  text-decoration: underline;
+}
+
+/* ─── 消息列表 ──────────────────────────────────────────── */
+
+.message-list--mock {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+
+ul.ant-list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li.ant-list-item {
+  margin-bottom: 16px;
+}
+
+/* ─── 消息行 ────────────────────────────────────────────── */
+
+.message-row--mock {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* 对方消息：avatar 在前 */
+.message-row--mock.other .avatar--mock {
+  order: -1;
+}
+
+/* 我的消息：avatar 在后 */
+.message-row--mock.self .avatar--mock {
+  order: 1;
+}
+
+/* ─── 头像 ──────────────────────────────────────────────── */
+
+.avatar--mock {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: #666;
+  overflow: hidden;
+}
+
+/* ─── 消息文本 ──────────────────────────────────────────── */
+
+.message-text--mock {
+  max-width: 400px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.message-row--mock.other .message-text--mock {
+  background: #f0f0f0;
+  color: #333;
+  border-top-left-radius: 2px;
+}
+
+.message-row--mock.self .message-text--mock {
+  background: #1677ff;
+  color: #fff;
+  border-top-right-radius: 2px;
+}
+
+/* ─── 商品卡片 ──────────────────────────────────────────── */
+
+.card--mock {
+  max-width: 280px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.card--mock:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card--mock .title--mock {
+  padding: 8px 12px 4px;
+  font-weight: 500;
+  font-size: 13px;
+  color: #333;
+}
+
+.card--mock .price--mock {
+  padding: 0 12px 8px;
+  color: #ff4d4f;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.card--mock .content--mock {
+  padding: 0 12px 8px;
+  color: #999;
+  font-size: 12px;
+}
+
+/* ─── 输入区域 ──────────────────────────────────────────── */
+
+.input-area--mock {
+  padding: 12px 20px;
+  border-top: 1px solid #e8e8e8;
+  flex-shrink: 0;
+  background: #fafafa;
+}
+
+textarea.ant-input {
+  width: 100%;
+  height: 60px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 8px 12px;
+  resize: none;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+textarea.ant-input:focus {
+  border-color: #1677ff;
+}
+
+/* ─── 会话列表项内部布局 ────────────────────────────────── */
+
+.conv-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.conv-item-avatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.conv-item-avatar img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.conv-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.conv-item-name {
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+}
+
+.conv-item-time {
+  color: #999;
+  font-size: 11px;
+}
+
+.conv-item-msg {
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+}
+
+.conv-item-product {
+  margin-top: 6px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.conv-item-product img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+/* ─── 系统提醒图标 ──────────────────────────────────────── */
+
+img[alt='reminder'] {
+  width: 20px;
+  height: 20px;
+}
+
+/* ─── 图片消息 ──────────────────────────────────────────── */
+
+.message-image--mock img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ─── 调试面板 ──────────────────────────────────────────── */
+
+.debug-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  padding: 8px 16px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 9999;
+  border-top: 2px solid #333;
+}
+
+.debug-panel .debug-title {
+  color: #569cd6;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.debug-panel .log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.debug-panel .log-api {
+  color: #4ec9b0;
+}
+
+.debug-panel .log-method {
+  color: #dcdcaa;
+}
+
+.debug-panel .log-args {
+  color: #ce9178;
+}
+
+.debug-panel .log-toggle {
+  position: absolute;
+  top: 4px;
+  right: 16px;
+  background: #333;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
