@@ -1,0 +1,39 @@
+import { consola } from 'consola'
+
+import {
+  list as listProducts,
+  getById as getProduct,
+  createOrUpdate as createOrUpdateProduct,
+  deleteById as deleteProduct
+} from '../stores/product-store'
+import type { Product } from '../../shared/types'
+import { err, ok } from '../ipc-response'
+import { safeHandle } from './safe-handle'
+
+const logger = consola.withTag('ipc:product')
+
+export function registerProductHandlers(): void {
+  safeHandle('product:list', () => {
+    return ok(listProducts())
+  })
+
+  safeHandle('product:getById', (_event, { id }: { id: string }) => {
+    return ok(getProduct(id))
+  })
+
+  safeHandle('product:upsert', (_event, product: Product) => {
+    try {
+      createOrUpdateProduct(product)
+      logger.info(`[IPC] 产品已保存: ${product.title} (ID: ${product.id})`)
+      return ok(product)
+    } catch (error) {
+      logger.warn(`[IPC] 产品保存失败: ${error}, ID: ${product.id}`)
+      return err(3, '产品保存失败')
+    }
+  })
+
+  safeHandle('product:deleteById', (_event, { id }: { id: string }) => {
+    deleteProduct(id)
+    return ok(null)
+  })
+}

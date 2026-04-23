@@ -21,7 +21,7 @@ const mockHandlePaymentEvent = vi.fn<(...args: unknown[]) => Promise<void>>()
 vi.mock('../../stores/conversation-store', () => ({
   buildChatId: (...args: [string, string | null]) => mockBuildChatId(...args),
   createOrUpdate: (...args: unknown[]) => mockCreateOrUpdate(...args),
-  appendMessage: (...args: [string, string]) => mockAppendMessage(...args),
+  appendMessage: (...args: [string, string, boolean?]) => mockAppendMessage(...args),
   getById: (...args: unknown[]) => mockGetConversationById(...args)
 }))
 
@@ -174,6 +174,13 @@ describe('handleNewUserMessage', () => {
     const packet: Conversation = { chatInfo, messages }
 
     await handleNewUserMessage(packet)
+
+    // 支付卡片消息应先追加到对话历史
+    expect(mockAppendMessage).toHaveBeenCalledWith(
+      'test-user-item123',
+      '[支付] 我已付款，等待你发货',
+      false
+    )
 
     expect(mockHandlePaymentEvent).toHaveBeenCalledWith(chatInfo, {
       title: '我已付款，等待你发货',

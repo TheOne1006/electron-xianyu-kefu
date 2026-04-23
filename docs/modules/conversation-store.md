@@ -87,20 +87,21 @@ buildChatId(userName: string, itemId: string): string
 
 ## 关键函数
 
-| 层         | 函数                                | 说明                 |
-| ---------- | ----------------------------------- | -------------------- |
-| main/store | `buildChatId(userName, itemId)`     | 生成唯一会话 ID      |
-| main/store | `createOrUpdate(packet)`            | 创建或追加消息到对话 |
-| main/store | `appendMessage(chatId, msg)`        | 追加单条消息         |
-| main/store | `getById(chatId)`                   | 获取指定对话         |
-| main/store | `list()`                            | 列出全部对话         |
-| main/store | `deleteById(chatId)`                | 删除对话             |
-| main/agent | `handleNewUserMessage(data)`        | 编排完整处理流程     |
-| injected   | `im-router` → `conversation:upsert` | 推送采集到的消息     |
-| renderer   | `chat.list()` / `chat.getById()`    | 查看历史             |
+| 层         | 函数                                  | 说明                                               |
+| ---------- | ------------------------------------- | -------------------------------------------------- |
+| main/store | `buildChatId(userName, itemId)`       | 生成唯一会话 ID                                    |
+| main/store | `createOrUpdate(packet)`              | 创建或更新对话记录（无条件保存，不校验商品存在性） |
+| main/store | `appendMessage(chatId, msg, isSelf?)` | 追加单条消息（isSelf 默认 true）                   |
+| main/store | `getById(chatId)`                     | 获取指定对话                                       |
+| main/store | `list()`                              | 列出全部对话                                       |
+| main/store | `deleteById(chatId)`                  | 删除对话                                           |
+| main/agent | `handleNewUserMessage(data)`          | 编排完整处理流程                                   |
+| injected   | `im-router` → `conversation:upsert`   | 推送采集到的消息                                   |
+| renderer   | `chat.list()` / `chat.getById()`      | 查看历史                                           |
 
 ## 设计约束
 
 - **幂等写入**：`createOrUpdate` 对同一 chatId 重复调用不会产生重复记录
 - **消息方向判定**：`isSelf=true` 为卖家（我方），`isSelf=false` 为买家消息，Agent 仅处理 `isSelf=false` 的文本消息
 - **对话历史无上限**：当前未做消息数量截断，长期运行可能导致单个对话过大
+- **无条件记录**：`createOrUpdate` 不校验关联商品是否存在，对话记录始终保存。商品缺失仅影响业务逻辑（自动发货/Webhook 跳过），不影响记录本身。

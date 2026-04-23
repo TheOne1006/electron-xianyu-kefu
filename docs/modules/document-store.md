@@ -60,13 +60,13 @@ Record<string, string>  // key = 文档标题, value = 文档内容
 
 ## IPC 通道
 
-| 通道              | 方向            | 请求参数                           | 响应类型 `IpcResult<T>`      | 说明         |
-| ----------------- | --------------- | ---------------------------------- | ---------------------------- | ------------ |
-| `document:list`   | renderer → main | 无                                 | `T = string[]`               | 列出文档标题 |
-| `document:get`    | renderer → main | `{key: string}`                    | `T = string \| undefined`    | 获取文档内容 |
-| `document:all`    | renderer → main | 无                                 | `T = Record<string, string>` | 获取全部文档 |
-| `document:upsert` | renderer → main | `{key: string, content: string}`   | `T = string`                 | 创建或更新   |
-| `document:delete` | renderer → main | `{key: string}`                    | `T = null`                   | 删除文档     |
+| 通道              | 方向            | 请求参数                         | 响应类型 `IpcResult<T>`      | 说明         |
+| ----------------- | --------------- | -------------------------------- | ---------------------------- | ------------ |
+| `document:list`   | renderer → main | 无                               | `T = string[]`               | 列出文档标题 |
+| `document:get`    | renderer → main | `{key: string}`                  | `T = string \| undefined`    | 获取文档内容 |
+| `document:all`    | renderer → main | 无                               | `T = Record<string, string>` | 获取全部文档 |
+| `document:upsert` | renderer → main | `{key: string, content: string}` | `T = string`                 | 创建或更新   |
+| `document:delete` | renderer → main | `{key: string}`                  | `T = null`                   | 删除文档     |
 
 ## 存储位置
 

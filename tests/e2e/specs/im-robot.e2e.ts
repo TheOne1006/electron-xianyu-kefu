@@ -35,8 +35,8 @@ describe('ImRobot E2E', () => {
       // 手动触发 tick（更快更可控）
       await page.triggerDomChange()
 
-      // 等待 conversation.upsert 被调用
-      await waitForCall(page, 'electronAPI', 'conversation.upsert', 3000)
+      // 等待 conversation.upsert 被调用（需要足够时间让 handleDomChange 完成异步链路）
+      await waitForCall(page, 'electronAPI', 'conversation.upsert', 5000)
 
       const log = await page.getCallLog()
       const upsertCall = log.find(

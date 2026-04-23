@@ -47,28 +47,28 @@
 
 ### XY Browser（闲鱼浏览器窗口）
 
-| 通道                | 方向            | 请求参数    | 响应类型 `IpcResult<T>` | 说明               |
-| ------------------- | --------------- | ----------- | ----------------------- | ------------------ |
-| `xy-browser:launch` | renderer → main | `AppConfig` | `T = null`              | 启动闲鱼浏览器窗口 |
-| `xy-browser:close`  | renderer → main | 无          | `T = null`              | 关闭闲鱼浏览器窗口 |
-| `xy-browser:getStatus` | renderer → main | 无       | `T = BrowserStatus`     | 获取浏览器窗口状态 |
+| 通道                   | 方向            | 请求参数    | 响应类型 `IpcResult<T>` | 说明               |
+| ---------------------- | --------------- | ----------- | ----------------------- | ------------------ |
+| `xy-browser:launch`    | renderer → main | `AppConfig` | `T = null`              | 启动闲鱼浏览器窗口 |
+| `xy-browser:close`     | renderer → main | 无          | `T = null`              | 关闭闲鱼浏览器窗口 |
+| `xy-browser:getStatus` | renderer → main | 无          | `T = BrowserStatus`     | 获取浏览器窗口状态 |
 
 ### Conversation（对话历史）
 
-| 通道                          | 方向                       | 请求参数            | 响应类型 `IpcResult<T>`         | 说明                                        |
-| ----------------------------- | -------------------------- | ------------------- | ------------------------------- | ------------------------------------------- |
-| `conversation:upsert`         | injected → main            | `ConversationInput` | `T = null`                      | 推送新消息到 Agent 流水线（注入层专用）      |
-| `conversation:createOrUpdate` | renderer → main            | `Conversation`      | `T = Conversation`              | 创建或更新对话（渲染进程专用）              |
-| `conversation:list`           | renderer → main            | 无                  | `T = ConversationInput[]`       | 列出全部对话                                |
-| `conversation:getById`        | renderer → main            | `{chatId: string}`  | `T = ConversationInput \| null` | 获取指定对话                                |
-| `conversation:delete`         | renderer → main            | `{chatId: string}`  | `T = null`                      | 删除指定对话                                |
+| 通道                          | 方向            | 请求参数            | 响应类型 `IpcResult<T>`         | 说明                                    |
+| ----------------------------- | --------------- | ------------------- | ------------------------------- | --------------------------------------- |
+| `conversation:upsert`         | injected → main | `ConversationInput` | `T = null`                      | 推送新消息到 Agent 流水线（注入层专用） |
+| `conversation:createOrUpdate` | renderer → main | `Conversation`      | `T = Conversation`              | 创建或更新对话（渲染进程专用）          |
+| `conversation:list`           | renderer → main | 无                  | `T = ConversationInput[]`       | 列出全部对话                            |
+| `conversation:getById`        | renderer → main | `{chatId: string}`  | `T = ConversationInput \| null` | 获取指定对话                            |
+| `conversation:delete`         | renderer → main | `{chatId: string}`  | `T = null`                      | 删除指定对话                            |
 
 ### Reply Queue（回复队列）
 
-| 通道                  | 方向                       | 请求参数                            | 响应类型 `IpcResult<T>`             | 说明                   |
-| --------------------- | -------------------------- | ----------------------------------- | ----------------------------------- | ---------------------- |
-| `reply-queue:dequeue` | injected → main            | 无                                  | `T = string \| null`                | 拉取并发送 AI 回复     |
-| `reply-queue:enqueue` | renderer → main            | `{chatId: string, content: string}` | `T = {success: boolean}`            | 手动发送回复到队列     |
+| 通道                  | 方向            | 请求参数                            | 响应类型 `IpcResult<T>`  | 说明               |
+| --------------------- | --------------- | ----------------------------------- | ------------------------ | ------------------ |
+| `reply-queue:dequeue` | injected → main | 无                                  | `T = string \| null`     | 拉取并发送 AI 回复 |
+| `reply-queue:enqueue` | renderer → main | `{chatId: string, content: string}` | `T = {success: boolean}` | 手动发送回复到队列 |
 
 ### Agent Config（Agent 配置）
 
@@ -90,11 +90,11 @@
 
 ### Document（文档管理）
 
-| 通道              | 方向            | 请求参数                         | 响应类型 `IpcResult<T>`          | 说明         |
-| ----------------- | --------------- | -------------------------------- | -------------------------------- | ------------ |
-| `document:all`    | renderer → main | 无                               | `T = Record<string, string>`     | 获取全部文档 |
-| `document:upsert` | renderer → main | `{title: string, content: string}` | `T = Record<string, string>`  | 创建或更新文档 |
-| `document:delete` | renderer → main | `{title: string}`                | `T = null`                       | 删除指定文档 |
+| 通道              | 方向            | 请求参数                           | 响应类型 `IpcResult<T>`      | 说明           |
+| ----------------- | --------------- | ---------------------------------- | ---------------------------- | -------------- |
+| `document:all`    | renderer → main | 无                                 | `T = Record<string, string>` | 获取全部文档   |
+| `document:upsert` | renderer → main | `{title: string, content: string}` | `T = Record<string, string>` | 创建或更新文档 |
+| `document:delete` | renderer → main | `{title: string}`                  | `T = null`                   | 删除指定文档   |
 
 ### 测试
 

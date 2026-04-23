@@ -60,7 +60,11 @@ export async function handleNewUserMessage(data: Conversation): Promise<void> {
   const allow = lastMsg.type === 'text' && !lastMsg.isSelf && lastMsg.content?.trim()
 
   // 支付事件拦截（支付卡片 type='card' + paymentInfo，不满足 allow 条件）
+  // 先追加支付卡片消息到对话历史，再处理业务逻辑
   if (lastMsg.type === 'card' && lastMsg.paymentInfo) {
+    const chatId = buildChatId(chatInfo.userName, chatInfo.itemId)
+    const cardContent = lastMsg.content ?? `[支付] ${lastMsg.paymentInfo.title}`
+    appendMessage(chatId, cardContent, false)
     await handlePaymentEvent(chatInfo, lastMsg.paymentInfo)
     return
   }

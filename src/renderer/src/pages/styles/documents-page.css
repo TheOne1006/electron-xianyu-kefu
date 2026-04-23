@@ -1,0 +1,23 @@
+.documents-page__preview {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.documents-page__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.documents-page__modal-panel {
+  width: min(100%, 520px);
+}
+
+.documents-page__warning {
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+}
