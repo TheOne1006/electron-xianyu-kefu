@@ -15,7 +15,7 @@ jobs:
           - os: macos-latest
             build_cmd: build:mac
           - os: macos-latest
-            build_cmd: build:mac-x64
+            build_cmd: build:mac-universal
           - os: ubuntu-latest
             build_cmd: build:linux
           - os: windows-latest
