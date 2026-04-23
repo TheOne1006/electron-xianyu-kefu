@@ -66,7 +66,8 @@ window.electronAPI = {
   simulateEnterKey: (x, y) => ipcRenderer.invoke('simulate:enter-key', { x, y }),
   replyQueue: { dequeue: () => ipcRenderer.invoke('reply-queue:dequeue') },
   conversation: {
-    upsert: (chatInfo, messages) => ipcRenderer.invoke('conversation:upsert', { chatInfo, messages }),
+    upsert: (chatInfo, messages) =>
+      ipcRenderer.invoke('conversation:upsert', { chatInfo, messages }),
     getById: (chatId) => ipcRenderer.invoke('conversation:getById', { chatId })
   },
   product: {
@@ -98,13 +99,13 @@ export function loadInjectedCode(): string {
 
 ### 文件结构
 
-| 文件                        | 行数 | 职责                                           |
-| --------------------------- | --- | ---------------------------------------------- |
-| `types.ts`                  | 23  | 内部类型定义（ChatListItem、AgentState）         |
-| `im-dom-extractor.ts`       | 271 | IM 页面 DOM 提取静态类（4 个静态方法）           |
-| `im-robot.ts`               | 309 | IM 自动化机器人（状态机 + 回复发送）             |
-| `product-collector.ts`      | 180 | 商品页面收集器（浮动按钮 + DOM 提取）            |
-| `index.ts`                  | 30  | 统一入口：URL 路由分发                          |
+| 文件                   | 行数 | 职责                                     |
+| ---------------------- | ---- | ---------------------------------------- |
+| `types.ts`             | 23   | 内部类型定义（ChatListItem、AgentState） |
+| `im-dom-extractor.ts`  | 271  | IM 页面 DOM 提取静态类（4 个静态方法）   |
+| `im-robot.ts`          | 309  | IM 自动化机器人（状态机 + 回复发送）     |
+| `product-collector.ts` | 180  | 商品页面收集器（浮动按钮 + DOM 提取）    |
+| `index.ts`             | 30   | 统一入口：URL 路由分发                   |
 
 ### 构建方式
 
@@ -121,12 +122,12 @@ esbuild src/injected/index.ts \
 
 纯静态类，不挂载到 `window`，由调用方按需使用。路由层（`index.ts`）保证只在 `/im` 页面执行。
 
-| 静态方法                       | 返回类型         | 说明                           |
-| ------------------------------ | ---------------- | ------------------------------ |
-| `getCurrentChatInfo()`         | `ChatInfo`       | 提取当前聊天对象信息           |
-| `hasUnreadMessages()`          | `boolean`        | 检测未读消息标记               |
-| `getChatMessages()`            | `ChatMessage[]`  | 解析消息列表（文本/图片/卡片） |
-| `getChatList()`                | `ChatListItem[]` | 抓取会话列表                   |
+| 静态方法               | 返回类型         | 说明                           |
+| ---------------------- | ---------------- | ------------------------------ |
+| `getCurrentChatInfo()` | `ChatInfo`       | 提取当前聊天对象信息           |
+| `hasUnreadMessages()`  | `boolean`        | 检测未读消息标记               |
+| `getChatMessages()`    | `ChatMessage[]`  | 解析消息列表（文本/图片/卡片） |
+| `getChatList()`        | `ChatListItem[]` | 抓取会话列表                   |
 
 ### ProductCollector — 商品收集模块
 

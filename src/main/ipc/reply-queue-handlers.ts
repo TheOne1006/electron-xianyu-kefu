@@ -1,15 +1,15 @@
-import { ipcMain } from 'electron'
 import { consola } from 'consola'
 
 import { dequeue, enqueue } from '../stores/reply-queue'
 import type { QueueItem } from '../stores/reply-queue'
 import { appendMessage as appendConversationMessage } from '../stores/conversation-store'
 import { err, ok } from '../ipc-response'
+import { safeHandle } from './safe-handle'
 
 const logger = consola.withTag('ipc:reply-queue')
 
 export function registerReplyQueueHandlers(): void {
-  ipcMain.handle('reply-queue:dequeue', () => {
+  safeHandle('reply-queue:dequeue', () => {
     const item: QueueItem | null = dequeue()
     if (item !== null) {
       logger.info(`[IPC] 回复队列需要发送给会话: ${item.chatId}`)
@@ -18,7 +18,7 @@ export function registerReplyQueueHandlers(): void {
     return ok({ chatId: item?.chatId ?? null, replyText: item?.replyText ?? null })
   })
 
-  ipcMain.handle(
+  safeHandle(
     'reply-queue:enqueue',
     (_event, { chatId, content }: { chatId: string; content: string }) => {
       try {

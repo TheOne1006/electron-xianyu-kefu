@@ -318,7 +318,7 @@ textarea.ant-input:focus {
 
 /* ─── 系统提醒图标 ──────────────────────────────────────── */
 
-img[alt="reminder"] {
+img[alt='reminder'] {
   width: 20px;
   height: 20px;
 }

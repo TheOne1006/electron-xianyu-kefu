@@ -315,7 +315,7 @@
     // 消息操作
     addMessage: function (options) {
       const conv = _state.conversations[_state.activeConversationIndex]
-      const chatId = conv ? (conv.itemId || 'system') : null
+      const chatId = conv ? conv.itemId || 'system' : null
       if (!chatId) return
 
       if (!_state.messages[chatId]) {

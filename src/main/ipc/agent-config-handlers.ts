@@ -1,5 +1,3 @@
-import { ipcMain } from 'electron'
-
 import {
   getAgentConfig,
   getAllAgentConfigs,
@@ -8,17 +6,18 @@ import {
 } from '../stores/agent-config-store'
 import { ok } from '../ipc-response'
 import type { AgentConfig, AgentKey } from '../../shared/types'
+import { safeHandle } from './safe-handle'
 
 export function registerAgentConfigHandlers(): void {
-  ipcMain.handle('agent-config:all', () => {
+  safeHandle('agent-config:all', () => {
     return ok(getAllAgentConfigs())
   })
 
-  ipcMain.handle('agent-config:getById', (_event, { key }: { key: AgentKey }) => {
+  safeHandle('agent-config:getById', (_event, { key }: { key: AgentKey }) => {
     return ok(getAgentConfig(key))
   })
 
-  ipcMain.handle(
+  safeHandle(
     'agent-config:update',
     (_event, { key, config }: { key: AgentKey; config: AgentConfig }) => {
       saveAgentConfig(key, config)
@@ -26,7 +25,7 @@ export function registerAgentConfigHandlers(): void {
     }
   )
 
-  ipcMain.handle(
+  safeHandle(
     'agent-config:upsert',
     (_event, { key, config }: { key: AgentKey; config: AgentConfig }) => {
       upsertAgentConfig(key, config)

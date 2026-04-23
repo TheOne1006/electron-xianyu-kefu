@@ -1,8 +1,9 @@
-import { BrowserWindow, ipcMain, type IpcMainInvokeEvent } from 'electron'
+import { BrowserWindow, type IpcMainInvokeEvent } from 'electron'
 import { consola } from 'consola'
 
 import { BrowserAutomationService } from '../automation/browser-automation-service'
 import { err, ok } from '../ipc-response'
+import { safeHandle } from './safe-handle'
 
 const logger = consola.withTag('ipc:automation')
 
@@ -28,7 +29,7 @@ function resolveAutomationService(
 }
 
 export function registerAutomationHandlers(): void {
-  ipcMain.handle('simulate:click', async (event, x: number, y: number) => {
+  safeHandle('simulate:click', async (event, x: number, y: number) => {
     const { service, errorResult } = resolveAutomationService(
       event,
       3004,
@@ -44,7 +45,7 @@ export function registerAutomationHandlers(): void {
     return ok({ success: true })
   })
 
-  ipcMain.handle('simulate:chinese-input', async (event, text: string) => {
+  safeHandle('simulate:chinese-input', async (event, text: string) => {
     const { service, errorResult } = resolveAutomationService(
       event,
       3005,
@@ -65,7 +66,7 @@ export function registerAutomationHandlers(): void {
     }
   })
 
-  ipcMain.handle('simulate:enter-key', async (event, { x, y }: { x: number; y: number }) => {
+  safeHandle('simulate:enter-key', async (event, { x, y }: { x: number; y: number }) => {
     const { service, errorResult } = resolveAutomationService(
       event,
       3002,

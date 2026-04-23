@@ -6,6 +6,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 
 import { ToastProvider, ToastContainer } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { getRouteComponent } from './routes/route-components'
 import { getRouteMetaList } from './routes/route-meta'
 
@@ -21,14 +22,17 @@ function App(): React.JSX.Element {
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <AppHeader />
             <main style={{ flex: 1, overflow: 'auto' }}>
-              <Routes>
-                {getRouteMetaList().map(({ path }) => {
-                  const RouteComponent = getRouteComponent(path)
+              <ErrorBoundary>
+                <Routes>
+                  {getRouteMetaList().map(({ path }) => {
+                    const RouteComponent = getRouteComponent(path)
+                    if (!RouteComponent) return null
 
-                  return <Route key={path} path={path} element={<RouteComponent />} />
-                })}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
+                    return <Route key={path} path={path} element={<RouteComponent />} />
+                  })}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </ErrorBoundary>
             </main>
           </div>
         </div>

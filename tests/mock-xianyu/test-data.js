@@ -25,9 +25,7 @@ const TEST_DATA = {
       title: 'MacBook Air M2 8+256 午夜色',
       content: '2023年购入，保修到2024年12月，无维修记录',
       price: '¥5499',
-      images: [
-        'https://img.alicdn.com/imgextra/i2/234567/O1CN01ghi_600x600.jpg'
-      ],
+      images: ['https://img.alicdn.com/imgextra/i2/234567/O1CN01ghi_600x600.jpg'],
       mainImageUrl: 'https://img.alicdn.com/imgextra/i2/234567/O1CN01ghi_600x600.jpg',
       documentKeys: ['售后说明']
     },
@@ -36,9 +34,7 @@ const TEST_DATA = {
       title: 'AirPods Pro 2 USB-C 版',
       content: '全新未拆封，2024年10月购入',
       price: '¥1299',
-      images: [
-        'https://img.alicdn.com/imgextra/i3/345678/O1CN01jkl_600x600.jpg'
-      ],
+      images: ['https://img.alicdn.com/imgextra/i3/345678/O1CN01jkl_600x600.jpg'],
       mainImageUrl: 'https://img.alicdn.com/imgextra/i3/345678/O1CN01jkl_600x600.jpg',
       documentKeys: []
     }
@@ -90,22 +86,33 @@ const TEST_DATA = {
 
   /** 每个会话的消息列表（按 chatId 索引） */
   messages: {
-    '100001': [
+    100001: [
       { type: 'text', sender: '买家小明', isSelf: false, content: '你好，这个还在吗？' },
       { type: 'text', sender: '我', isSelf: true, content: '在的，品质很好，欢迎咨询' },
       { type: 'text', sender: '买家小明', isSelf: false, content: '可以便宜点吗？' }
     ],
-    '100002': [
+    100002: [
       { type: 'text', sender: '用户张三', isSelf: false, content: '有划痕吗？' },
       { type: 'text', sender: '我', isSelf: true, content: '没有任何划痕，一直贴膜使用' },
       { type: 'text', sender: '用户张三', isSelf: false, content: '成色怎么样？' }
     ],
-    'system': [
-      { type: 'text', sender: '系统', isSelf: false, content: '您的商品"iPhone 15 Pro Max"已被收藏' }
+    system: [
+      {
+        type: 'text',
+        sender: '系统',
+        isSelf: false,
+        content: '您的商品"iPhone 15 Pro Max"已被收藏'
+      }
     ],
-    '100003': [
+    100003: [
       { type: 'text', sender: '用户李四', isSelf: false, content: '可以当面交易吗？' },
-      { type: 'card', sender: '系统', isSelf: false, content: '', cardInfo: { title: 'AirPods Pro 2 USB-C 版', price: '¥1299', href: '/item?id=100003' } }
+      {
+        type: 'card',
+        sender: '系统',
+        isSelf: false,
+        content: '',
+        cardInfo: { title: 'AirPods Pro 2 USB-C 版', price: '¥1299', href: '/item?id=100003' }
+      }
     ]
   },
 
@@ -114,7 +121,7 @@ const TEST_DATA = {
 
   /** 文档库 */
   documents: {
-    '产品介绍模板': '这是一款高品质的商品，品质保证，欢迎咨询。',
-    '售后说明': '感谢您的购买！如有任何问题，请随时联系客服。'
+    产品介绍模板: '这是一款高品质的商品，品质保证，欢迎咨询。',
+    售后说明: '感谢您的购买！如有任何问题，请随时联系客服。'
   }
 }

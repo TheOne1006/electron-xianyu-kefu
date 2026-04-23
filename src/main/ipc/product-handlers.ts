@@ -1,4 +1,3 @@
-import { ipcMain } from 'electron'
 import { consola } from 'consola'
 
 import {
@@ -9,19 +8,20 @@ import {
 } from '../stores/product-store'
 import type { Product } from '../../shared/types'
 import { err, ok } from '../ipc-response'
+import { safeHandle } from './safe-handle'
 
 const logger = consola.withTag('ipc:product')
 
 export function registerProductHandlers(): void {
-  ipcMain.handle('product:list', () => {
+  safeHandle('product:list', () => {
     return ok(listProducts())
   })
 
-  ipcMain.handle('product:getById', (_event, { id }: { id: string }) => {
+  safeHandle('product:getById', (_event, { id }: { id: string }) => {
     return ok(getProduct(id))
   })
 
-  ipcMain.handle('product:upsert', (_event, product: Product) => {
+  safeHandle('product:upsert', (_event, product: Product) => {
     try {
       createOrUpdateProduct(product)
       logger.info(`[IPC] 产品已保存: ${product.title} (ID: ${product.id})`)
@@ -32,7 +32,7 @@ export function registerProductHandlers(): void {
     }
   })
 
-  ipcMain.handle('product:deleteById', (_event, { id }: { id: string }) => {
+  safeHandle('product:deleteById', (_event, { id }: { id: string }) => {
     deleteProduct(id)
     return ok(null)
   })

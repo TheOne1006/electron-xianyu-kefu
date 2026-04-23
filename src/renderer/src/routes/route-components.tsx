@@ -20,12 +20,6 @@ const routeComponentMap: Record<string, ComponentType> = {
 /**
  * 根据路径返回对应页面组件。
  */
-export function getRouteComponent(pathname: string): ComponentType {
-  const routeComponent = routeComponentMap[pathname]
-
-  if (!routeComponent) {
-    throw new Error(`未找到路径对应的页面组件: ${pathname}`)
-  }
-
-  return routeComponent
+export function getRouteComponent(pathname: string): ComponentType | null {
+  return routeComponentMap[pathname] ?? null
 }

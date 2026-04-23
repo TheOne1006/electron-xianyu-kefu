@@ -87,17 +87,17 @@ buildChatId(userName: string, itemId: string): string
 
 ## 关键函数
 
-| 层         | 函数                                | 说明                 |
-| ---------- | ----------------------------------- | -------------------- |
-| main/store | `buildChatId(userName, itemId)`     | 生成唯一会话 ID      |
-| main/store | `createOrUpdate(packet)`            | 创建或更新对话记录（无条件保存，不校验商品存在性） |
-| main/store | `appendMessage(chatId, msg, isSelf?)` | 追加单条消息（isSelf 默认 true） |
-| main/store | `getById(chatId)`                   | 获取指定对话         |
-| main/store | `list()`                            | 列出全部对话         |
-| main/store | `deleteById(chatId)`                | 删除对话             |
-| main/agent | `handleNewUserMessage(data)`        | 编排完整处理流程     |
-| injected   | `im-router` → `conversation:upsert` | 推送采集到的消息     |
-| renderer   | `chat.list()` / `chat.getById()`    | 查看历史             |
+| 层         | 函数                                  | 说明                                               |
+| ---------- | ------------------------------------- | -------------------------------------------------- |
+| main/store | `buildChatId(userName, itemId)`       | 生成唯一会话 ID                                    |
+| main/store | `createOrUpdate(packet)`              | 创建或更新对话记录（无条件保存，不校验商品存在性） |
+| main/store | `appendMessage(chatId, msg, isSelf?)` | 追加单条消息（isSelf 默认 true）                   |
+| main/store | `getById(chatId)`                     | 获取指定对话                                       |
+| main/store | `list()`                              | 列出全部对话                                       |
+| main/store | `deleteById(chatId)`                  | 删除对话                                           |
+| main/agent | `handleNewUserMessage(data)`          | 编排完整处理流程                                   |
+| injected   | `im-router` → `conversation:upsert`   | 推送采集到的消息                                   |
+| renderer   | `chat.list()` / `chat.getById()`      | 查看历史                                           |
 
 ## 设计约束
 
