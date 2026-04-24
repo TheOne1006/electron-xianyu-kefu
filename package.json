@@ -1,6 +1,6 @@
 {
   "name": "electron-xianyu-kefu",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "packageManager": "pnpm@10.28.0",
   "type": "module",
   "description": "基于 Electron 的闲鱼客服自动化工具，通过 AI 助手自动处理客户咨询",
