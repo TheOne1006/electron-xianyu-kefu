@@ -1,8 +1,0 @@
-extends: ./electron-builder.yml
-mac:
-  target:
-    - target: dmg
-      arch:
-        - universal
-dmg:
-  artifactName: ${name}-${version}-universal.${ext}
