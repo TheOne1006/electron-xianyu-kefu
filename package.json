@@ -36,7 +36,7 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && dotenv electron-builder --mac",
-    "build:mac-universal": "npm run build && dotenv electron-builder --mac --universal",
+    "build:mac-universal": "npm run build && dotenv electron-builder --mac --config electron-builder-universal.yml",
     "build:linux": "npm run build && electron-builder --linux",
     "test": "vitest run",
     "test:watch": "vitest",
