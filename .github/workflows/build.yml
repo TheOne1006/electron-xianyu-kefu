@@ -14,8 +14,8 @@ jobs:
         include:
           - os: macos-latest
             build_cmd: build:mac
-          - os: macos-latest
-            build_cmd: build:mac-universal
+          - os: macos-15-intel
+            build_cmd: build:mac
           - os: ubuntu-latest
             build_cmd: build:linux
           - os: windows-latest
@@ -34,7 +34,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'pnpm'
 
       - name: Install dependencies
