@@ -1,6 +1,6 @@
 {
   "name": "electron-xianyu-kefu",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "packageManager": "pnpm@10.28.0",
   "type": "module",
   "description": "基于 Electron 的闲鱼客服自动化工具，通过 AI 助手自动处理客户咨询",
@@ -36,7 +36,7 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "npm run build && dotenv electron-builder --mac",
-    "build:mac-universal": "npm run build && dotenv electron-builder --mac --universal",
+    "build:mac-universal": "npm run build && dotenv electron-builder --mac --config electron-builder-universal.yml",
     "build:linux": "npm run build && electron-builder --linux",
     "test": "vitest run",
     "test:watch": "vitest",
