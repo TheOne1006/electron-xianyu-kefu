@@ -234,3 +234,23 @@ export interface LogEntry {
   /** 时间戳（毫秒） */
   timestamp: number
 }
+
+// ============================================================
+// L. 数据导出类型
+// ============================================================
+
+/** 数据导出文件格式 */
+export interface ExportData {
+  /** 应用版本号，如 "0.5.6" */
+  version: string
+  /** 导出时间（ISO 8601） */
+  exportedAt: string
+  /** 应用配置 */
+  appConfig: AppConfig
+  /** Agent 配置 */
+  agentConfig: Record<AgentKey, AgentConfig>
+  /** 文档库 */
+  documents: Record<string, string>
+  /** 商品目录 */
+  products: Record<string, Product>
+}
