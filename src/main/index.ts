@@ -6,6 +6,12 @@ import { createWindow, setMainWindow, closeXYBrowserWindow } from './browser'
 import { registerIpcHandlers } from './ipc-handlers'
 import { logCollector } from './log'
 
+// 在模块加载时就配置 consola reporter，确保所有 logger 都能继承
+// 这样 withTag() 创建的实例也能继承这个 reporter
+consola.addReporter({
+  log: (logObj) => logCollector.report(logObj)
+})
+
 // 创建主窗口 (Main Window)，用于承载 renderer (渲染进程) 的 React 界面
 function createMainWindow(): void {
   const mainWindow = createWindow({
@@ -57,11 +63,6 @@ app.whenReady().then(() => {
   // 详见: https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
-  })
-
-  // 配置 consola 将日志同时发送到 LogCollector
-  consola.addReporter({
-    log: (logObj) => logCollector.report(logObj)
   })
 
   // 注册所有 IPC 通道处理器
