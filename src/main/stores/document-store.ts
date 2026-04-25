@@ -76,3 +76,17 @@ export function getDocumentsByKeys(keys: string[]): Record<string, string> {
   }
   return result
 }
+
+/**
+ * 全量替换所有文档（用于导入）
+ * 先清空现有数据，再写入新数据
+ */
+export function replaceAll(documents: Record<string, string>): void {
+  for (const key of Object.keys(store.store)) {
+    store.delete(key)
+  }
+  for (const [key, content] of Object.entries(documents)) {
+    store.set(key, content)
+  }
+  logger.info(`全量替换文档: ${Object.keys(documents).length} 条`)
+}

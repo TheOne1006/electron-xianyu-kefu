@@ -85,3 +85,26 @@ export function getByMainImage(imageUrl: string): Product | null {
   }
   return null
 }
+
+/**
+ * 获取所有产品（Record 格式，用于导出）
+ */
+export function getAllAsRecord(): Record<string, Product> {
+  return { ...store.store }
+}
+
+/**
+ * 全量替换所有产品（用于导入）
+ * 先清空现有数据，再写入新数据
+ */
+export function replaceAll(products: Record<string, Product>): void {
+  // 清空现有数据
+  for (const key of Object.keys(store.store)) {
+    store.delete(key)
+  }
+  // 写入新数据
+  for (const [key, product] of Object.entries(products)) {
+    store.set(key, product)
+  }
+  logger.info(`全量替换产品: ${Object.keys(products).length} 条`)
+}

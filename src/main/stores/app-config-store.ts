@@ -38,3 +38,10 @@ export function saveAppConfig(config: Partial<AppConfig>): void {
   const current = getAppConfig()
   appStore.set({ ...current, ...config })
 }
+
+/**
+ * 全量替换应用配置（用于导入，不做合并，直接覆盖）
+ */
+export function replaceAppConfig(config: AppConfig): void {
+  appStore.set(config)
+}

@@ -81,3 +81,12 @@ export function saveAgentConfig(key: AgentKey, config: AgentConfig): void {
 export function upsertAgentConfig(key: AgentKey, config: AgentConfig): void {
   agentConfigStore.set(key, config)
 }
+
+/**
+ * 全量替换所有 Agent 配置（用于导入）
+ */
+export function replaceAll(configs: Record<AgentKey, AgentConfig>): void {
+  for (const [key, config] of Object.entries(configs)) {
+    agentConfigStore.set(key, config)
+  }
+}
