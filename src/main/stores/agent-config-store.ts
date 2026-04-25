@@ -1,5 +1,6 @@
 import Store from 'electron-store'
 import type { AgentKey, AgentConfig } from '../../shared/types'
+import { getStoreCwd } from './helper'
 
 import systemPrompt from '@shared/defaults/prompts/system.json'
 import classifyPrompt from '@shared/defaults/prompts/classify.json'
@@ -36,6 +37,7 @@ const StoreClass = (Store as unknown as { default: typeof Store }).default || St
 
 export const agentConfigStore = new StoreClass<Record<AgentKey, AgentConfig>>({
   name: 'agent-config',
+  cwd: getStoreCwd(),
   defaults: defaultAgents
 })
 
