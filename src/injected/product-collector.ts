@@ -16,9 +16,7 @@ import { createIpcLogReporter } from '../shared/log-reporter'
 
 const logger = createConsola({
   defaults: { tag: 'injected:product-collector' },
-  reporters: [
-    createIpcLogReporter((ch, data) => window.electronAPI.send(ch, data))
-  ]
+  reporters: [createIpcLogReporter((ch, data) => window.electronAPI.send(ch, data))]
 })
 
 /** 注入脚本可调用的 Electron API（由 preload-browser.ts 注入） */
