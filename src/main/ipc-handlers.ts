@@ -4,6 +4,7 @@ import { registerConversationHandlers } from './ipc/conversation-handlers'
 import { registerCoreHandlers } from './ipc/core-handlers'
 import { registerDocumentHandlers } from './ipc/document-handlers'
 import { registerProductHandlers } from './ipc/product-handlers'
+import { registerDataHandlers } from './ipc/data-handlers'
 import { registerLogHandlers } from './ipc/log-handlers'
 import { registerReplyQueueHandlers } from './ipc/reply-queue-handlers'
 
@@ -20,4 +21,5 @@ export function registerIpcHandlers(): void {
   registerDocumentHandlers()
   registerAutomationHandlers()
   registerLogHandlers()
+  registerDataHandlers()
 }
