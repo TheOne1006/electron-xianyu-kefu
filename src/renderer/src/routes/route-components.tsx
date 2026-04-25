@@ -3,6 +3,7 @@ import { AgentConfigPage } from '../pages/AgentConfigPage'
 import { ConfigsPage } from '../pages/ConfigsPage'
 import { ConversationsPage } from '../pages/ConversationsPage'
 import { DocumentsPage } from '../pages/DocumentsPage'
+import { LogsPage } from '../pages/LogsPage'
 import { ProductsPage } from '../pages/ProductsPage'
 import { QAndAPage } from '../pages/QAndAPage'
 import { QuickStartPage } from '../pages/QuickStartPage'
@@ -14,7 +15,8 @@ const routeComponentMap: Record<string, ComponentType> = {
   '/conversations': ConversationsPage,
   '/documents': DocumentsPage,
   '/quick-start': QuickStartPage,
-  '/q-and-a': QAndAPage
+  '/q-and-a': QAndAPage,
+  '/logs': LogsPage
 }
 
 /**

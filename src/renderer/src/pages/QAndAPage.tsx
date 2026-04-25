@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { PageCenteredWrapper } from '../components/PageCenteredWrapper'
+import { ChevronIcon } from '../components/ChevronIcon'
 
 interface QAItem {
   question: string
@@ -77,129 +79,108 @@ export function QAndAPage(): React.JSX.Element {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        padding: 'var(--space-6) var(--space-4)',
-        height: '100%',
-        overflowY: 'auto'
-      }}
-    >
-      <div style={{ width: '100%', maxWidth: '680px' }}>
-        <h2
-          style={{
-            fontSize: 'var(--text-h1)',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            marginBottom: 'var(--space-6)'
-          }}
-        >
-          常见问题解答
-        </h2>
+    <PageCenteredWrapper>
+      <h2
+        style={{
+          fontSize: 'var(--text-h1)',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+          marginBottom: 'var(--space-6)'
+        }}
+      >
+        常见问题解答
+      </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-          {qaList.map((item, index) => {
-            const isExpanded = expandedIndex === index
-            const isHovered = hoveredIndex === index && !isExpanded
-            return (
-              <div
-                key={index}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        {qaList.map((item, index) => {
+          const isExpanded = expandedIndex === index
+          const isHovered = hoveredIndex === index && !isExpanded
+          return (
+            <div
+              key={index}
+              style={{
+                backgroundColor: 'var(--bg-surface)',
+                borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
+                border: `1px solid ${isExpanded ? 'var(--brand-primary)' : isHovered ? 'var(--border-active)' : 'var(--border-default)'}`,
+                transition: 'border-color 200ms ease-in-out'
+              }}
+            >
+              <button
+                onClick={() => toggleItem(index)}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                aria-expanded={isExpanded}
+                aria-controls={`qa-answer-${index}`}
                 style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  borderRadius: 'var(--radius-md)',
-                  overflow: 'hidden',
-                  border: `1px solid ${isExpanded ? 'var(--brand-primary)' : isHovered ? 'var(--border-active)' : 'var(--border-default)'}`,
-                  transition: 'border-color 200ms ease-in-out'
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: 'var(--space-3) var(--space-4)',
+                  backgroundColor: isExpanded
+                    ? 'var(--bg-elevated)'
+                    : isHovered
+                      ? 'var(--bg-elevated)'
+                      : 'transparent',
+                  border: 'none',
+                  color: isExpanded ? 'var(--brand-primary)' : 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontSize: 'var(--text-body)',
+                  fontWeight: isExpanded ? 600 : 400,
+                  textAlign: 'left',
+                  transition: 'background-color 200ms ease-in-out, color 200ms ease-in-out'
                 }}
               >
-                <button
-                  onClick={() => toggleItem(index)}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  aria-expanded={isExpanded}
-                  aria-controls={`qa-answer-${index}`}
+                <span style={{ lineHeight: 'var(--leading-relaxed)' }}>{item.question}</span>
+                <span
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: 'var(--space-3) var(--space-4)',
-                    backgroundColor: isExpanded
-                      ? 'var(--bg-elevated)'
-                      : isHovered
-                        ? 'var(--bg-elevated)'
-                        : 'transparent',
-                    border: 'none',
-                    color: isExpanded ? 'var(--brand-primary)' : 'var(--text-primary)',
-                    cursor: 'pointer',
-                    fontSize: 'var(--text-body)',
-                    fontWeight: isExpanded ? 600 : 400,
-                    textAlign: 'left',
-                    transition: 'background-color 200ms ease-in-out, color 200ms ease-in-out'
+                    marginLeft: 'var(--space-3)',
+                    color: isExpanded ? 'var(--brand-primary)' : 'var(--text-secondary)'
                   }}
                 >
-                  <span style={{ lineHeight: 'var(--leading-relaxed)' }}>{item.question}</span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                  <ChevronIcon expanded={isExpanded} />
+                </span>
+              </button>
+              {/* 回答区域 */}
+              <div
+                id={`qa-answer-${index}`}
+                role="region"
+                aria-labelledby={`qa-question-${index}`}
+                style={{
+                  maxHeight: isExpanded ? '500px' : '0',
+                  overflow: 'hidden',
+                  transition: 'max-height 250ms ease-in-out'
+                }}
+              >
+                <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
+                  <div
                     style={{
-                      flexShrink: 0,
-                      marginLeft: 'var(--space-3)',
-                      transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 200ms ease-in-out',
-                      color: isExpanded ? 'var(--brand-primary)' : 'var(--text-secondary)'
+                      width: '32px',
+                      height: '2px',
+                      backgroundColor: 'var(--brand-primary)',
+                      borderRadius: '1px',
+                      marginBottom: 'var(--space-3)',
+                      opacity: 0.5
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: 'var(--text-body)',
+                      color: 'var(--text-secondary)',
+                      lineHeight: 'var(--leading-relaxed)',
+                      margin: 0,
+                      whiteSpace: 'pre-line'
                     }}
                   >
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </button>
-                {/* 回答区域 */}
-                <div
-                  id={`qa-answer-${index}`}
-                  role="region"
-                  aria-labelledby={`qa-question-${index}`}
-                  style={{
-                    maxHeight: isExpanded ? '500px' : '0',
-                    overflow: 'hidden',
-                    transition: 'max-height 250ms ease-in-out'
-                  }}
-                >
-                  <div style={{ padding: '0 var(--space-4) var(--space-4)' }}>
-                    <div
-                      style={{
-                        width: '32px',
-                        height: '2px',
-                        backgroundColor: 'var(--brand-primary)',
-                        borderRadius: '1px',
-                        marginBottom: 'var(--space-3)',
-                        opacity: 0.5
-                      }}
-                    />
-                    <p
-                      style={{
-                        fontSize: 'var(--text-body)',
-                        color: 'var(--text-secondary)',
-                        lineHeight: 'var(--leading-relaxed)',
-                        margin: 0,
-                        whiteSpace: 'pre-line'
-                      }}
-                    >
-                      {item.answer}
-                    </p>
-                  </div>
+                    {item.answer}
+                  </p>
                 </div>
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
       </div>
-    </div>
+    </PageCenteredWrapper>
   )
 }

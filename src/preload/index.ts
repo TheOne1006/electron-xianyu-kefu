@@ -1,8 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { createConsola } from 'consola/browser'
+import { createIpcLogReporter } from '../shared/log-reporter'
 
-const logger = createConsola({ defaults: { tag: 'preload:index' } })
+const logger = createConsola({
+  defaults: { tag: 'preload:index' },
+  reporters: [createIpcLogReporter((ch, data) => ipcRenderer.send(ch, data))]
+})
 
 /** IPC 响应解包 helper — 从 IpcResult<T> 中提取 data 字段 */
 async function invokeAndUnwrap<T>(channel: string, data?: unknown): Promise<T> {
@@ -15,7 +19,8 @@ const api = {
   ...electronAPI,
   config: {
     get: () => invokeAndUnwrap('config:get'),
-    save: (config: unknown) => ipcRenderer.invoke('config:save', config)
+    save: (config: unknown) => ipcRenderer.invoke('config:save', config),
+    testWebhook: () => ipcRenderer.invoke('config:testWebhook')
   },
   xyBrowser: {
     launch: (config: unknown) => ipcRenderer.invoke('xy-browser:launch', config),
@@ -64,6 +69,25 @@ const api = {
     upsert: (key: string, content: string) =>
       ipcRenderer.invoke('document:upsert', { key, content }),
     delete: (key: string) => ipcRenderer.invoke('document:delete', { key })
+  },
+  log: {
+    request: () => invokeAndUnwrap<import('../shared/types').LogEntry[]>('log:request'),
+    clear: () => ipcRenderer.invoke('log:clear'),
+    onNew: (callback: (entry: import('../shared/types').LogEntry) => void) => {
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        entry: import('../shared/types').LogEntry
+      ): void => callback(entry)
+      ipcRenderer.on('log:new', handler)
+      return () => ipcRenderer.removeListener('log:new', handler)
+    },
+    history: (date: string) => invokeAndUnwrap<string[]>('log:history', date),
+    listDates: () => invokeAndUnwrap<string[]>('log:listDates')
+  },
+  data: {
+    exportData: () => ipcRenderer.invoke('data:export'),
+    importData: () => ipcRenderer.invoke('data:import'),
+    openDir: () => ipcRenderer.invoke('data:openDir')
   }
 }
 

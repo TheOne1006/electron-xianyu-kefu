@@ -10,14 +10,15 @@
 import Store from 'electron-store'
 import { consola } from 'consola'
 import type { Conversation } from '../../shared/types'
-import { safeId } from './helper'
+import { safeId, getStoreCwd } from './helper'
 
 const logger = consola.withTag('conversation-store')
 
 // ─── Store 实例 ─────────────────────────────────────────────
 
 const store = new Store<Record<string, Conversation>>({
-  name: 'conversations'
+  name: 'conversations',
+  cwd: getStoreCwd()
 })
 
 // ─── 工具函数 ─────────────────────────────────────────────

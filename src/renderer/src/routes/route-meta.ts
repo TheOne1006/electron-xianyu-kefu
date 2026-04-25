@@ -4,6 +4,7 @@ export type RouteIconKey =
   | 'agent'
   | 'conversations'
   | 'documents'
+  | 'logs'
   | 'products'
   | 'qa'
   | 'quickStart'

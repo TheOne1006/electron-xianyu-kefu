@@ -33,10 +33,14 @@ export function registerConversationHandlers(): void {
   })
 
   safeHandle('conversation:createOrUpdate', (_event, data: Conversation) => {
-    return ok(createOrUpdateConversation(data))
+    const result = createOrUpdateConversation(data)
+    logger.info(`[createOrUpdate] 会话已更新: ${data.chatInfo.userName}`)
+    return ok(result)
   })
 
   safeHandle('conversation:delete', (_event, { chatId }: { chatId: string }) => {
-    return ok(deleteConversation(chatId))
+    deleteConversation(chatId)
+    logger.info(`[delete] 会话已删除: ${chatId}`)
+    return ok(null)
   })
 }

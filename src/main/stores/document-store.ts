@@ -8,6 +8,7 @@
 import Store from 'electron-store'
 import { consola } from 'consola'
 import defaultDocuments from '@shared/defaults/documents/001.json'
+import { getStoreCwd } from './helper'
 
 const logger = consola.withTag('document-store')
 
@@ -17,6 +18,7 @@ const StoreClass = (Store as unknown as { default: typeof Store }).default || St
 
 const store = new StoreClass<Record<string, string>>({
   name: 'documents',
+  cwd: getStoreCwd(),
   defaults: defaultDocuments as Record<string, string>
 })
 
@@ -75,4 +77,18 @@ export function getDocumentsByKeys(keys: string[]): Record<string, string> {
     }
   }
   return result
+}
+
+/**
+ * 全量替换所有文档（用于导入）
+ * 先清空现有数据，再写入新数据
+ */
+export function replaceAll(documents: Record<string, string>): void {
+  for (const key of Object.keys(store.store)) {
+    store.delete(key)
+  }
+  for (const [key, content] of Object.entries(documents)) {
+    store.set(key, content)
+  }
+  logger.info(`全量替换文档: ${Object.keys(documents).length} 条`)
 }
