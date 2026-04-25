@@ -158,6 +158,9 @@ export interface ElectronIPC {
  * 所有注入脚本必须从本文件导入此类型，不得在其他文件中重复声明。
  */
 export interface InjectedElectronAPI {
+  // ─── IPC 通信 ────────────────────────────────────────────
+  send: (channel: string, data: unknown) => void
+
   // ─── 模拟操作 ───────────────────────────────────────────
   simulateClick: (
     x: number,

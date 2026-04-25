@@ -20,6 +20,9 @@ window.addEventListener('DOMContentLoaded', () => {
   logger.info('DOMContentLoaded, starting injections...')
 
   contextBridge.exposeInMainWorld('electronAPI', {
+    // IPC 通信（用于日志转发等）
+    send: (channel: string, data: unknown) => ipcRenderer.send(channel, data),
+
     // 模拟鼠标点击
     simulateClick: (x: number, y: number) => ipcRenderer.invoke('simulate:click', x, y),
     // 模拟中文输入
