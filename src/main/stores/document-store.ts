@@ -8,6 +8,7 @@
 import Store from 'electron-store'
 import { consola } from 'consola'
 import defaultDocuments from '@shared/defaults/documents/001.json'
+import { getStoreCwd } from './helper'
 
 const logger = consola.withTag('document-store')
 
@@ -17,6 +18,7 @@ const StoreClass = (Store as unknown as { default: typeof Store }).default || St
 
 const store = new StoreClass<Record<string, string>>({
   name: 'documents',
+  cwd: getStoreCwd(),
   defaults: defaultDocuments as Record<string, string>
 })
 
