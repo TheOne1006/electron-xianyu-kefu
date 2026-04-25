@@ -13,6 +13,9 @@ declare global {
       config: {
         get: () => Promise<import('../shared/types').AppConfig>
         save: (config: Partial<import('../shared/types').AppConfig>) => Promise<void>
+        testWebhook: () => Promise<
+          import('../shared/types').IpcResult<{ status: number; statusText: string }>
+        >
       }
       xyBrowser: {
         launch: (config: import('../shared/types').AppConfig) => Promise<void>

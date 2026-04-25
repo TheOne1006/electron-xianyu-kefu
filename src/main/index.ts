@@ -1,16 +1,11 @@
+// setup-consola 必须在其他模块之前导入，确保 addReporter 先于 withTag 执行
+import './setup-consola'
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { consola } from 'consola'
 import { createWindow, setMainWindow, closeXYBrowserWindow } from './browser'
 import { registerIpcHandlers } from './ipc-handlers'
 import { logCollector } from './log'
-
-// 在模块加载时就配置 consola reporter，确保所有 logger 都能继承
-// 这样 withTag() 创建的实例也能继承这个 reporter
-consola.addReporter({
-  log: (logObj) => logCollector.report(logObj)
-})
 
 // 创建主窗口 (Main Window)，用于承载 renderer (渲染进程) 的 React 界面
 function createMainWindow(): void {

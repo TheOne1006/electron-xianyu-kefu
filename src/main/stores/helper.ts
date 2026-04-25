@@ -18,5 +18,6 @@ export function getStoreCwd(): string {
  * 只保留字母、数字、中文字符、下划线和横线
  */
 export function safeId(id: string): string {
-  return id.replace(/[^a-zA-Z0-9_\-一-鿿]/g, '_')
+  if (!id) return ''
+  return String(id).replace(/[^\w\-\u4e00-\u9fa5]/g, '_')
 }

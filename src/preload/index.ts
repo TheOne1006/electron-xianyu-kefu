@@ -19,7 +19,8 @@ const api = {
   ...electronAPI,
   config: {
     get: () => invokeAndUnwrap('config:get'),
-    save: (config: unknown) => ipcRenderer.invoke('config:save', config)
+    save: (config: unknown) => ipcRenderer.invoke('config:save', config),
+    testWebhook: () => ipcRenderer.invoke('config:testWebhook')
   },
   xyBrowser: {
     launch: (config: unknown) => ipcRenderer.invoke('xy-browser:launch', config),

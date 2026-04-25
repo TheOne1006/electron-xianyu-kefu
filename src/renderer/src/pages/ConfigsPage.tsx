@@ -48,6 +48,24 @@ export function ConfigsPage(): React.JSX.Element {
     await window.electron.data.openDir()
   }
 
+  const [testingWebhook, setTestingWebhook] = useState(false)
+
+  async function handleTestWebhook(): Promise<void> {
+    setTestingWebhook(true)
+    try {
+      const result = await window.electron.config.testWebhook()
+      if (result.code === 0) {
+        showToast('success', `测试成功 (${result.data.status} ${result.data.statusText})`)
+      } else {
+        showToast('error', result.message)
+      }
+    } catch {
+      showToast('error', '测试请求异常')
+    } finally {
+      setTestingWebhook(false)
+    }
+  }
+
   return (
     <div
       style={{
@@ -277,14 +295,26 @@ export function ConfigsPage(): React.JSX.Element {
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Webhook URL</label>
-              <input
-                type="text"
-                className="input-field"
-                value={config.orderWebhookUrl ?? ''}
-                onChange={(e) => handleFieldChange('orderWebhookUrl', e.target.value)}
-                placeholder="https://example.com/notify?product=<title>"
-                disabled={loading || saving}
-              />
+              <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  value={config.orderWebhookUrl ?? ''}
+                  onChange={(e) => handleFieldChange('orderWebhookUrl', e.target.value)}
+                  placeholder="https://example.com/notify?product=<title>"
+                  disabled={loading || saving}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  onClick={() => void handleTestWebhook()}
+                  disabled={loading || saving || testingWebhook}
+                  className="btn btn-primary"
+                  title="发送测试请求（title=demo）"
+                  style={{ flexShrink: 0 }}
+                >
+                  {testingWebhook ? '测试中...' : '测试'}
+                </button>
+              </div>
               <p className="form-hint">检测到支付事件时调用此 URL，{'<title>'} 将替换为商品名称</p>
             </div>
           </section>
