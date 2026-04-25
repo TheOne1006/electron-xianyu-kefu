@@ -1,8 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { createConsola } from 'consola/browser'
+import { createIpcLogReporter } from '../shared/log-reporter'
 
-const logger = createConsola({ defaults: { tag: 'preload:index' } })
+const logger = createConsola({
+  defaults: { tag: 'preload:index' },
+  reporters: [createIpcLogReporter((ch, data) => ipcRenderer.send(ch, data))]
+})
 
 /** IPC 响应解包 helper — 从 IpcResult<T> 中提取 data 字段 */
 async function invokeAndUnwrap<T>(channel: string, data?: unknown): Promise<T> {
