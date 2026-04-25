@@ -68,6 +68,8 @@ declare global {
         request: () => Promise<import('../shared/types').LogEntry[]>
         clear: () => Promise<void>
         onNew: (callback: (entry: import('../shared/types').LogEntry) => void) => () => void
+        history: (date: string) => Promise<string[]>
+        listDates: () => Promise<string[]>
       }
     }
   }

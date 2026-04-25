@@ -79,7 +79,9 @@ const api = {
       ): void => callback(entry)
       ipcRenderer.on('log:new', handler)
       return () => ipcRenderer.removeListener('log:new', handler)
-    }
+    },
+    history: (date: string) => invokeAndUnwrap<string[]>('log:history', date),
+    listDates: () => invokeAndUnwrap<string[]>('log:listDates')
   }
 }
 
