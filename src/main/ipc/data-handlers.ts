@@ -127,7 +127,7 @@ export function registerDataHandlers(): void {
 
   // ─── 打开数据目录 ──────────────────────────────────────
   safeHandle('data:openDir', async () => {
-    const dirPath = app.getPath('userData')
+    const dirPath = join(app.getPath('userData'), 'app-data')
     await shell.openPath(dirPath)
     return ok(null)
   })
