@@ -158,6 +158,9 @@ export interface ElectronIPC {
  * 所有注入脚本必须从本文件导入此类型，不得在其他文件中重复声明。
  */
 export interface InjectedElectronAPI {
+  // ─── IPC 通信 ────────────────────────────────────────────
+  send: (channel: string, data: unknown) => void
+
   // ─── 模拟操作 ───────────────────────────────────────────
   simulateClick: (
     x: number,
@@ -207,4 +210,47 @@ export interface RobotCommands {
     state?: string
   }>
   getStatus(): { state: string; lastActivity: number }
+}
+
+// ============================================================
+// K. 日志类型
+// ============================================================
+
+/** 日志级别 */
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+
+/** 单条日志记录 */
+export interface LogEntry {
+  /** 唯一 ID（时间戳 + 随机数） */
+  id: string
+  /** 日志级别 */
+  level: LogLevel
+  /** 模块标签（如 'browser', 'agent'） */
+  tag: string
+  /** 日志消息 */
+  message: string
+  /** 附加数据（可选） */
+  args?: unknown[]
+  /** 时间戳（毫秒） */
+  timestamp: number
+}
+
+// ============================================================
+// L. 数据导出类型
+// ============================================================
+
+/** 数据导出文件格式 */
+export interface ExportData {
+  /** 应用版本号，如 "0.5.6" */
+  version: string
+  /** 导出时间（ISO 8601） */
+  exportedAt: string
+  /** 应用配置 */
+  appConfig: AppConfig
+  /** Agent 配置 */
+  agentConfig: Record<AgentKey, AgentConfig>
+  /** 文档库 */
+  documents: Record<string, string>
+  /** 商品目录 */
+  products: Record<string, Product>
 }

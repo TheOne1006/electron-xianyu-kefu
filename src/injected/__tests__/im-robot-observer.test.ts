@@ -9,6 +9,7 @@ import { JSDOM } from 'jsdom'
 
 // Mock electronAPI
 const mockElectronAPI = {
+  send: vi.fn(),
   simulateClick: vi.fn().mockResolvedValue({ code: 0, message: '', data: { success: true } }),
   simulateChineseInput: vi
     .fn()

@@ -1,8 +1,11 @@
+// setup-consola 必须在其他模块之前导入，确保 addReporter 先于 withTag 执行
+import './setup-consola'
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { createWindow, setMainWindow, closeXYBrowserWindow } from './browser'
 import { registerIpcHandlers } from './ipc-handlers'
+import { logCollector } from './log'
 
 // 创建主窗口 (Main Window)，用于承载 renderer (渲染进程) 的 React 界面
 function createMainWindow(): void {
@@ -29,6 +32,9 @@ function createMainWindow(): void {
 
   // 保存主窗口引用，用于向渲染进程发送消息
   setMainWindow(mainWindow)
+
+  // 将主窗口引用传递给 LogCollector，用于向前端推送日志
+  logCollector.setWindow(mainWindow)
 
   // 主窗口关闭时联动关闭闲鱼浏览器窗口
   mainWindow.on('close', () => {

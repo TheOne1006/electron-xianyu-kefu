@@ -8,6 +8,7 @@
 
 import Store from 'electron-store'
 import { consola } from 'consola'
+import { getStoreCwd } from './helper'
 
 const logger = consola.withTag('reply-queue')
 
@@ -26,6 +27,7 @@ interface ReplyQueueStore {
 
 const store = new Store<ReplyQueueStore>({
   name: 'reply-queue',
+  cwd: getStoreCwd(),
   defaults: {
     queue: []
   }

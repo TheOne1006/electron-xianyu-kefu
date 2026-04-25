@@ -34,6 +34,7 @@ export function registerProductHandlers(): void {
 
   safeHandle('product:deleteById', (_event, { id }: { id: string }) => {
     deleteProduct(id)
+    logger.info(`[deleteById] 产品已删除: ${id}`)
     return ok(null)
   })
 }

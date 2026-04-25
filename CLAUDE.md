@@ -31,6 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 src/
 ├── shared/
 │   ├── types.ts                    # 跨进程共用类型（IpcResult<T>、AppConfig、Product、AgentKey…）
+│   ├── log-reporter.ts             # 共享 IPC log reporter（renderer/injected 通过 ipcRenderer.send 发送日志）
 │   └── defaults/                   # 默认配置（首次运行加载到 electron-store）
 │       ├── configs/app-config.json
 │       ├── prompts/{system,classify,default,price,tech}.json
@@ -39,20 +40,35 @@ src/
 ├── main/                           # 主进程 (Node.js)
 │   ├── index.ts                    # 入口：注册 IPC + 创建窗口 + 生命周期
 │   ├── browser.ts                  # 窗口工厂 + 闲鱼浏览器窗口 + sendToBrowser()
-│   ├── ipc-handlers.ts             # 所有 ipcMain.handle() 注册点，ok/err 统一响应
-│   ├── stores/                     # 数据持久化（全部 electron-store）
+│   ├── setup-consola.ts            # 主进程 consola 配置（注册 LogCollector）
+│   ├── ipc/                        # IPC handler 模块化（按领域拆分）
+│   │   ├── core-handlers.ts        # config / xy-browser 通道
+│   │   ├── agent-config-handlers.ts
+│   │   ├── conversation-handlers.ts
+│   │   ├── product-handlers.ts
+│   │   ├── document-handlers.ts
+│   │   ├── reply-queue-handlers.ts
+│   │   ├── log-handlers.ts         # log:request/clear/history/listDates
+│   │   ├── data-handlers.ts        # data:export/import/openDir
+│   │   ├── automation-handlers.ts
+│   │   └── safe-handle.ts          # ipcMain.handle 包装器（异常兜底）
+│   ├── log/                        # 日志系统
+│   │   ├── log-collector.ts        # 日志收集器（接收 IPC 日志，分发给 writer 和 UI）
+│   │   └── file-writer.ts          # 日志文件写入器（按日期轮转）
+│   ├── stores/                     # 数据持久化（全部 electron-store，统一 app-data/ 目录）
 │   │   ├── app-config-store.ts     # AppConfig（LLM、浏览器 URL、安全过滤）
 │   │   ├── agent-config-store.ts   # Record<AgentKey, AgentConfig>（5 Agent 的 prompt+参数）
 │   │   ├── conversation-store.ts   # 对话历史（按 chatId 存储）
 │   │   ├── product-store.ts        # 商品目录（Product[]）
 │   │   ├── document-store.ts       # 文档库（Record<title, content>）
 │   │   ├── reply-queue.ts          # 待发送回复队列（入队/出队/幂等）
-│   │   └── helper.ts               # Store 共用工具函数
+│   │   └── helper.ts               # Store 共用工具函数（getStoreCwd、safeId）
 │   └── business/                   # 业务逻辑（无 Electron 依赖，纯函数可测试）
 │       ├── agent.ts                # 编排器：消息过滤 → 意图分类 → LLM 回复 → 入队
 │       ├── agent-runner.ts         # LLM 执行引擎：构建 prompt → OpenAI API → 安全过滤
 │       ├── intent-router.ts        # 意图分类：关键词/regex 快速路径 + LLM 兜底
-│       └── safety-filter.ts        # 关键词替换式安全过滤
+│       ├── safety-filter.ts        # 关键词替换式安全过滤
+│       └── payment-handler.ts      # 支付事件处理（自动发货 / Webhook 通知）
 │
 ├── injected/                       # 注入脚本（esbuild IIFE → 浏览器环境）
 │   ├── types.ts                    # 注入脚本内部类型（ChatListItem、AgentState）
@@ -72,11 +88,14 @@ src/
     ├── main.tsx                    # React 入口
     ├── env.d.ts                    # Vite 类型声明
     ├── pages/                      # 页面组件
-    │   ├── ConfigsPage.tsx         # /configs — LLM + 浏览器配置
+    │   ├── ConfigsPage.tsx         # /configs — LLM + 浏览器配置 + 数据管理
     │   ├── AgentConfigPage.tsx     # /agent-config — 5 Agent 提示词编辑
     │   ├── ProductsPage.tsx        # /products — 商品 CRUD（统一弹窗表单）
     │   ├── DocumentsPage.tsx       # /documents — 文档库管理
-    │   └── ConversationsPage.tsx   # /conversations — 对话历史
+    │   ├── ConversationsPage.tsx   # /conversations — 对话历史
+    │   ├── LogsPage.tsx            # /logs — 日志查看（按日期 + 实时）
+    │   ├── QuickStartPage.tsx      # /quick-start — 快速入门引导
+    │   └── QAndAPage.tsx           # /qa — 常见问题解答
     ├── components/                 # 通用组件
     │   ├── Sidebar.tsx             # 可折叠导航栏
     │   ├── AppHeader.tsx           # 页面标题 + 启动浏览器按钮

@@ -13,6 +13,9 @@ declare global {
       config: {
         get: () => Promise<import('../shared/types').AppConfig>
         save: (config: Partial<import('../shared/types').AppConfig>) => Promise<void>
+        testWebhook: () => Promise<
+          import('../shared/types').IpcResult<{ status: number; statusText: string }>
+        >
       }
       xyBrowser: {
         launch: (config: import('../shared/types').AppConfig) => Promise<void>
@@ -63,6 +66,18 @@ declare global {
         all: () => Promise<Record<string, string>>
         upsert: (key: string, content: string) => Promise<void>
         delete: (key: string) => Promise<void>
+      }
+      log: {
+        request: () => Promise<import('../shared/types').LogEntry[]>
+        clear: () => Promise<void>
+        onNew: (callback: (entry: import('../shared/types').LogEntry) => void) => () => void
+        history: (date: string) => Promise<string[]>
+        listDates: () => Promise<string[]>
+      }
+      data: {
+        exportData: () => Promise<import('../shared/types').IpcResult<string>>
+        importData: () => Promise<import('../shared/types').IpcResult<string>>
+        openDir: () => Promise<import('../shared/types').IpcResult<void>>
       }
     }
   }

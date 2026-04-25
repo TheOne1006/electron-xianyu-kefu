@@ -12,8 +12,12 @@ import type { ChatListItem, AgentState, CommandResult, RobotCommands } from './t
 import type { ChatInfo, Product } from '../shared/types'
 import { PRODUCT_MAIN_IMAGE_URL_COMPARE_LENGTH } from '../shared/constants'
 import { ImDomExtractor } from './im-dom-extractor'
+import { createIpcLogReporter } from '../shared/log-reporter'
 
-const logger = createConsola({ defaults: { tag: 'injected:im-robot' } })
+const logger = createConsola({
+  defaults: { tag: 'injected:im-robot' },
+  reporters: [createIpcLogReporter((ch, data) => window.electronAPI.send(ch, data))]
+})
 
 /** 注入脚本可调用的 Electron API（由 preload-browser.ts 注入） */
 declare global {

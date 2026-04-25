@@ -2,6 +2,7 @@ import Store from 'electron-store'
 import type { AppConfig } from '../../shared/types'
 
 import defaultConfig from '@shared/defaults/configs/app-config.json'
+import { getStoreCwd } from './helper'
 
 /**
  * 从 @shared/defaults 加载默认应用配置
@@ -17,6 +18,7 @@ const StoreClass = (Store as unknown as { default: typeof Store }).default || St
 
 export const appStore = new StoreClass<AppConfig>({
   name: 'config',
+  cwd: getStoreCwd(),
   defaults: defaultAppConfig
 })
 
@@ -37,4 +39,11 @@ export function getAppConfig(): AppConfig {
 export function saveAppConfig(config: Partial<AppConfig>): void {
   const current = getAppConfig()
   appStore.set({ ...current, ...config })
+}
+
+/**
+ * 全量替换应用配置（用于导入，不做合并，直接覆盖）
+ */
+export function replaceAppConfig(config: AppConfig): void {
+  appStore.set(config)
 }

@@ -24,8 +24,11 @@ describe('safeId', () => {
     expect(safeId('商品-001')).toBe('商品-001')
   })
 
-  it('处理空字符串', () => {
+  it('处理空字符串和非字符串', () => {
     expect(safeId('')).toBe('')
+    expect(safeId(undefined as unknown as string)).toBe('')
+    expect(safeId(null as unknown as string)).toBe('')
+    expect(safeId(123 as unknown as string)).toBe('123')
   })
 
   it('全部特殊字符被替换', () => {
