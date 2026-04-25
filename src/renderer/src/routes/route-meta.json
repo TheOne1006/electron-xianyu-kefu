@@ -40,5 +40,11 @@
     "title": "Q&A",
     "iconKey": "qa",
     "navVisible": true
+  },
+  {
+    "path": "/logs",
+    "title": "日志",
+    "iconKey": "logs",
+    "navVisible": true
   }
 ]

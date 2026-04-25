@@ -40,7 +40,7 @@ export function LogsPage(): React.JSX.Element {
             级别:
           </span>
           <div className="logs-page__level-filters">
-            {levels.map(level => (
+            {levels.map((level) => (
               <button
                 key={level}
                 className={`logs-page__level-btn logs-page__level-btn--${level} ${
@@ -53,7 +53,13 @@ export function LogsPage(): React.JSX.Element {
             ))}
           </div>
 
-          <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-caption)', marginLeft: 'var(--space-2)' }}>
+          <span
+            style={{
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--text-caption)',
+              marginLeft: 'var(--space-2)'
+            }}
+          >
             模块:
           </span>
           <select
@@ -62,8 +68,10 @@ export function LogsPage(): React.JSX.Element {
             onChange={(e) => setTagFilter(e.target.value)}
           >
             <option value="">全部</option>
-            {availableTags.map(tag => (
-              <option key={tag} value={tag}>{tag}</option>
+            {availableTags.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
             ))}
           </select>
         </div>
@@ -74,15 +82,11 @@ export function LogsPage(): React.JSX.Element {
       </div>
 
       {/* 日志列表 */}
-      <div
-        className="logs-page__list"
-        ref={listRef}
-        onScroll={handleScroll}
-      >
+      <div className="logs-page__list" ref={listRef} onScroll={handleScroll}>
         {logs.length === 0 ? (
           <div className="logs-page__empty">暂无日志</div>
         ) : (
-          logs.map(entry => (
+          logs.map((entry) => (
             <div key={entry.id} className="logs-page__entry">
               <span className="logs-page__timestamp">{formatTime(entry.timestamp)}</span>
               <span className={`logs-page__level logs-page__level--${entry.level}`}>
