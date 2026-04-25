@@ -1,12 +1,21 @@
 import type { BrowserWindow } from 'electron'
 import type { LogEntry, LogLevel } from '../../shared/types'
+import { logFileWriter } from './file-writer'
 
-/**
- * 日志收集器
- *
- * 作为 consola 的自定义 reporter，收集主进程日志并推送到渲染进程。
- * 维护一个环形缓冲区（默认 1000 条），用于新打开日志页面时提供历史数据。
- */
+const typeToLevel: Record<string, LogLevel> = {
+  fatal: 'fatal',
+  error: 'error',
+  warn: 'warn',
+  log: 'info',
+  info: 'info',
+  success: 'info',
+  fail: 'error',
+  ready: 'info',
+  start: 'info',
+  debug: 'debug',
+  trace: 'debug'
+}
+
 class LogCollector {
   private win: BrowserWindow | null = null
   private buffer: LogEntry[] = []
@@ -31,30 +40,17 @@ class LogCollector {
     args?: unknown[]
     date?: Date
   }): void {
-    // 使用 logObj.type 而不是 logObj.level 来确定日志级别
-    // consola 的 type 包括: 'fatal', 'error', 'warn', 'log', 'info', 'success', 'fail', 'ready', 'start', 'debug', 'trace'
-    const typeToLevel: Record<string, LogLevel> = {
-      fatal: 'fatal',
-      error: 'error',
-      warn: 'warn',
-      log: 'info',
-      info: 'info',
-      success: 'info',
-      fail: 'error',
-      ready: 'info',
-      start: 'info',
-      debug: 'debug',
-      trace: 'debug' // trace 映射为 debug，因为 LogLevel 不包含 trace
-    }
-
     const entry: LogEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       level: typeToLevel[logObj.type ?? 'info'] ?? 'info',
       tag: logObj.tag || 'default',
       message: logObj.args?.map((arg) => String(arg)).join(' ') || '',
       args: logObj.args,
-      timestamp: logObj.date?.getTime() || Date.now()
+      timestamp: logObj.date?.getTime() ?? Date.now()
     }
+
+    // 写入文件
+    logFileWriter.write(entry)
 
     // 添加到缓冲区
     this.buffer.push(entry)
@@ -81,6 +77,36 @@ class LogCollector {
    */
   clear(): void {
     this.buffer = []
+  }
+
+  /**
+   * 从其他进程接收日志条目并写入文件
+   */
+  pushFromOtherProcess(entry: LogEntry): void {
+    logFileWriter.write(entry)
+
+    this.buffer.push(entry)
+    if (this.buffer.length > this.maxSize) {
+      this.buffer.shift()
+    }
+
+    if (this.win && !this.win.isDestroyed()) {
+      this.win.webContents.send('log:new', entry)
+    }
+  }
+
+  /**
+   * 从文件读取指定日期的日志
+   */
+  getHistoryFromFile(date: string): string[] {
+    return logFileWriter.readLog(date)
+  }
+
+  /**
+   * 列出所有可用的日志日期
+   */
+  listLogDates(): string[] {
+    return logFileWriter.listDates()
   }
 }
 
