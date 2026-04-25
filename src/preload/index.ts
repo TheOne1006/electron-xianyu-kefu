@@ -82,6 +82,11 @@ const api = {
     },
     history: (date: string) => invokeAndUnwrap<string[]>('log:history', date),
     listDates: () => invokeAndUnwrap<string[]>('log:listDates')
+  },
+  data: {
+    exportData: () => ipcRenderer.invoke('data:export'),
+    importData: () => ipcRenderer.invoke('data:import'),
+    openDir: () => ipcRenderer.invoke('data:openDir')
   }
 }
 

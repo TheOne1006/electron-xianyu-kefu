@@ -71,6 +71,11 @@ declare global {
         history: (date: string) => Promise<string[]>
         listDates: () => Promise<string[]>
       }
+      data: {
+        exportData: () => Promise<import('../shared/types').IpcResult<string>>
+        importData: () => Promise<import('../shared/types').IpcResult<string>>
+        openDir: () => Promise<import('../shared/types').IpcResult<void>>
+      }
     }
   }
 }
