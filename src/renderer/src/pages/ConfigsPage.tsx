@@ -62,7 +62,16 @@ export function ConfigsPage(): React.JSX.Element {
         <section className="card" style={{ marginBottom: 'var(--space-4)' }}>
           <div
             onClick={() => setDataExpanded(!dataExpanded)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setDataExpanded(!dataExpanded)
+              }
+            }}
+            tabIndex={0}
+            role="button"
             aria-expanded={dataExpanded}
+            aria-controls="data-management-content"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -70,7 +79,7 @@ export function ConfigsPage(): React.JSX.Element {
               cursor: 'pointer'
             }}
           >
-            <h2 className="h2" style={{ margin: 0 }}>
+            <h2 className="h2" id="data-management-title" style={{ margin: 0 }}>
               数据管理
             </h2>
             <svg
@@ -92,7 +101,11 @@ export function ConfigsPage(): React.JSX.Element {
               <path d="M6 9l6 6 6-6" />
             </svg>
           </div>
+          {/* 数据管理内容 */}
           <div
+            id="data-management-content"
+            role="region"
+            aria-labelledby="data-management-title"
             style={{
               maxHeight: dataExpanded ? '200px' : '0',
               overflow: 'hidden',
