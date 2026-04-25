@@ -9,8 +9,12 @@
 import { ipcRenderer, contextBridge } from 'electron'
 import { createConsola } from 'consola/browser'
 import { loadInjectedCode } from './injected-inject'
+import { createIpcLogReporter } from '../shared/log-reporter'
 
-const logger = createConsola({ defaults: { tag: 'preload:browser' } })
+const logger = createConsola({
+  defaults: { tag: 'preload:browser' },
+  reporters: [createIpcLogReporter((ch, data) => ipcRenderer.send(ch, data))]
+})
 
 window.addEventListener('DOMContentLoaded', () => {
   logger.info('DOMContentLoaded, starting injections...')
