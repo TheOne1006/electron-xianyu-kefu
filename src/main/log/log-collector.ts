@@ -31,19 +31,25 @@ class LogCollector {
     args?: unknown[]
     date?: Date
   }): void {
-    // consola level number 转换为可读字符串
-    const levelMap: Record<number, LogLevel> = {
-      0: 'fatal',
-      1: 'error',
-      2: 'warn',
-      3: 'info',
-      4: 'debug',
-      5: 'debug' // trace 级别映射为 debug，因为 LogLevel 不包含 trace
+    // 使用 logObj.type 而不是 logObj.level 来确定日志级别
+    // consola 的 type 包括: 'fatal', 'error', 'warn', 'log', 'info', 'success', 'fail', 'ready', 'start', 'debug', 'trace'
+    const typeToLevel: Record<string, LogLevel> = {
+      fatal: 'fatal',
+      error: 'error',
+      warn: 'warn',
+      log: 'info',
+      info: 'info',
+      success: 'info',
+      fail: 'error',
+      ready: 'info',
+      start: 'info',
+      debug: 'debug',
+      trace: 'debug' // trace 映射为 debug，因为 LogLevel 不包含 trace
     }
 
     const entry: LogEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      level: levelMap[logObj.level ?? 3] ?? 'info',
+      level: typeToLevel[logObj.type ?? 'info'] ?? 'info',
       tag: logObj.tag || 'default',
       message: logObj.args?.map((arg) => String(arg)).join(' ') || '',
       args: logObj.args,
