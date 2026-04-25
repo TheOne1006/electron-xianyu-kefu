@@ -208,3 +208,26 @@ export interface RobotCommands {
   }>
   getStatus(): { state: string; lastActivity: number }
 }
+
+// ============================================================
+// K. 日志类型
+// ============================================================
+
+/** 日志级别 */
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+
+/** 单条日志记录 */
+export interface LogEntry {
+  /** 唯一 ID（时间戳 + 随机数） */
+  id: string
+  /** 日志级别 */
+  level: LogLevel
+  /** 模块标签（如 'browser', 'agent'） */
+  tag: string
+  /** 日志消息 */
+  message: string
+  /** 附加数据（可选） */
+  args?: unknown[]
+  /** 时间戳（毫秒） */
+  timestamp: number
+}
