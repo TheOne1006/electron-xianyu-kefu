@@ -45,7 +45,7 @@ class LogCollector {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       level: levelMap[logObj.level ?? 3] ?? 'info',
       tag: logObj.tag || 'default',
-      message: logObj.args?.map(arg => String(arg)).join(' ') || '',
+      message: logObj.args?.map((arg) => String(arg)).join(' ') || '',
       args: logObj.args,
       timestamp: logObj.date?.getTime() || Date.now()
     }
