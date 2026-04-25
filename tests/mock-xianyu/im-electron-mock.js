@@ -60,6 +60,11 @@
 
   // ─── window.electronAPI ──────────────────────────────────
   window.electronAPI = {
+    // IPC 通道（fire-and-forget，用于日志推送等）
+    send(channel, data) {
+      logCall('electronAPI', 'send', [channel, data], null)
+    },
+
     // 模拟操作
     async simulateClick(x, y) {
       logCall('electronAPI', 'simulateClick', [x, y], { success: true })
