@@ -8,7 +8,7 @@
 import Store from 'electron-store'
 import { consola } from 'consola'
 import type { Product } from '../../shared/types'
-import { safeId } from './helper'
+import { safeId, getStoreCwd } from './helper'
 import { PRODUCT_MAIN_IMAGE_URL_COMPARE_LENGTH } from '../../shared/constants'
 
 const logger = consola.withTag('product-store')
@@ -16,7 +16,8 @@ const logger = consola.withTag('product-store')
 // ─── Store 实例 ─────────────────────────────────────────────
 
 const store = new Store<Record<string, Product>>({
-  name: 'products'
+  name: 'products',
+  cwd: getStoreCwd()
 })
 
 // ─── CRUD 方法 ─────────────────────────────────────────────
