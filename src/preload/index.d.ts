@@ -64,6 +64,11 @@ declare global {
         upsert: (key: string, content: string) => Promise<void>
         delete: (key: string) => Promise<void>
       }
+      log: {
+        request: () => Promise<import('../shared/types').LogEntry[]>
+        clear: () => Promise<void>
+        onNew: (callback: (entry: import('../shared/types').LogEntry) => void) => () => void
+      }
     }
   }
 }

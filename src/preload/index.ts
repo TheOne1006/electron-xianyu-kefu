@@ -69,8 +69,10 @@ const api = {
     request: () => invokeAndUnwrap<import('../shared/types').LogEntry[]>('log:request'),
     clear: () => ipcRenderer.invoke('log:clear'),
     onNew: (callback: (entry: import('../shared/types').LogEntry) => void) => {
-      const handler = (_event: Electron.IpcRendererEvent, entry: import('../shared/types').LogEntry): void =>
-        callback(entry)
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        entry: import('../shared/types').LogEntry
+      ): void => callback(entry)
       ipcRenderer.on('log:new', handler)
       return () => ipcRenderer.removeListener('log:new', handler)
     }
