@@ -1,3 +1,4 @@
+import { useToast } from '../contexts/ToastContext'
 import { useConfigsPage } from './configs-page-model'
 
 /**
@@ -15,6 +16,35 @@ export function ConfigsPage(): React.JSX.Element {
     handleSave
   } = useConfigsPage()
 
+  const { showToast } = useToast()
+
+  async function handleExport(): Promise<void> {
+    const result = await window.electron.data.exportData()
+    if (result.code === 0) {
+      showToast('success', `数据已导出到: ${result.data}`)
+    } else if (result.code !== 1) {
+      showToast('error', result.message)
+    }
+  }
+
+  async function handleImport(): Promise<void> {
+    const confirmed = window.confirm(
+      '导入将覆盖当前所有数据（应用配置、Agent 配置、文档库、商品目录），是否继续？'
+    )
+    if (!confirmed) return
+
+    const result = await window.electron.data.importData()
+    if (result.code === 0) {
+      showToast('success', '数据导入成功')
+    } else {
+      showToast('error', result.message)
+    }
+  }
+
+  async function handleOpenDir(): Promise<void> {
+    await window.electron.data.openDir()
+  }
+
   return (
     <div
       style={{
@@ -26,6 +56,25 @@ export function ConfigsPage(): React.JSX.Element {
       }}
     >
       <div style={{ width: '100%', maxWidth: '1200px' }}>
+        <section className="card" style={{ marginBottom: 'var(--space-4)' }}>
+          <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
+            数据管理
+          </h2>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+            <button onClick={() => void handleExport()} className="btn btn-primary">
+              导出数据
+            </button>
+            <button onClick={() => void handleImport()} className="btn btn-primary">
+              导入数据
+            </button>
+            <button onClick={() => void handleOpenDir()} className="btn btn-primary">
+              打开数据目录
+            </button>
+          </div>
+          <p className="form-hint" style={{ marginTop: 'var(--space-3)' }}>
+            导出/导入范围：应用配置、Agent 配置、文档库、商品目录
+          </p>
+        </section>
         <div
           style={{
             display: 'grid',
