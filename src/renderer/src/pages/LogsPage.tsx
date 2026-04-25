@@ -1,10 +1,18 @@
 import { useLogsPage } from './logs-page-model'
 import './styles/logs-page.css'
 
-/**
- * 日志查看页面
- * 实时展示主进程的日志输出
- */
+const levels = ['debug', 'info', 'warn', 'error', 'fatal'] as const
+
+function formatTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+}
+
 export function LogsPage(): React.JSX.Element {
   const {
     logs,
@@ -15,25 +23,13 @@ export function LogsPage(): React.JSX.Element {
     toggleLevel,
     setTagFilter,
     clearLogs,
-    handleScroll
+    handleScroll,
+    loadHistory,
+    historyDates
   } = useLogsPage()
-
-  const levels = ['debug', 'info', 'warn', 'error', 'fatal'] as const
-
-  /** 格式化时间戳为 HH:mm:ss */
-  const formatTime = (timestamp: number): string => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    })
-  }
 
   return (
     <div className="page-shell">
-      {/* 工具栏 */}
       <div className="logs-page__toolbar">
         <div className="logs-page__filters">
           <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-caption)' }}>
@@ -76,12 +72,30 @@ export function LogsPage(): React.JSX.Element {
           </select>
         </div>
 
+        {historyDates.length > 0 && (
+          <select
+            className="logs-page__tag-select"
+            onChange={(e) => {
+              if (e.target.value) loadHistory(e.target.value)
+            }}
+            defaultValue=""
+          >
+            <option value="" disabled>
+              加载历史...
+            </option>
+            {historyDates.map((date) => (
+              <option key={date} value={date}>
+                {date}
+              </option>
+            ))}
+          </select>
+        )}
+
         <button className="logs-page__clear-btn" onClick={clearLogs}>
           清空
         </button>
       </div>
 
-      {/* 日志列表 */}
       <div className="logs-page__list" ref={listRef} onScroll={handleScroll}>
         {logs.length === 0 ? (
           <div className="logs-page__empty">暂无日志</div>

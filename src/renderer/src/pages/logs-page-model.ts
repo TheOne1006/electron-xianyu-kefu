@@ -1,14 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import type { LogEntry } from '@shared/types'
 
 const MAX_LOGS = 1000
 
-/**
- * 日志页面业务逻辑
- */
 export function useLogsPage(): {
   logs: LogEntry[]
-  allLogs: LogEntry[]
   levelFilter: Set<string>
   tagFilter: string
   availableTags: string[]
@@ -17,6 +13,8 @@ export function useLogsPage(): {
   setTagFilter: (filter: string) => void
   clearLogs: () => Promise<void>
   handleScroll: () => void
+  loadHistory: (date: string) => Promise<void>
+  historyDates: string[]
 } {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [levelFilter, setLevelFilter] = useState<Set<string>>(
@@ -26,7 +24,6 @@ export function useLogsPage(): {
   const listRef = useRef<HTMLDivElement>(null)
   const isAutoScrollRef = useRef(true)
 
-  // 添加日志条目
   const addEntry = useCallback((entry: LogEntry) => {
     setLogs((prev) => {
       const next = [...prev, entry]
@@ -34,13 +31,11 @@ export function useLogsPage(): {
     })
   }, [])
 
-  // 清空日志
   const clearLogs = useCallback(async () => {
     await window.electron.log.clear()
     setLogs([])
   }, [])
 
-  // 切换级别过滤
   const toggleLevel = useCallback((level: string) => {
     setLevelFilter((prev) => {
       const next = new Set(prev)
@@ -53,24 +48,24 @@ export function useLogsPage(): {
     })
   }, [])
 
-  // 过滤后的日志
-  const filteredLogs = logs.filter((log) => {
-    if (!levelFilter.has(log.level)) return false
-    if (tagFilter && log.tag !== tagFilter) return false
-    return true
-  })
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      if (!levelFilter.has(log.level)) return false
+      if (tagFilter && log.tag !== tagFilter) return false
+      return true
+    })
+  }, [logs, levelFilter, tagFilter])
 
-  // 获取所有出现过的标签（用于过滤下拉）
-  const availableTags = Array.from(new Set(logs.map((l) => l.tag))).sort()
+  const availableTags = useMemo(() => {
+    return Array.from(new Set(logs.map((l) => l.tag))).sort()
+  }, [logs])
 
-  // 自动滚动到底部
   const scrollToBottom = useCallback(() => {
     if (listRef.current && isAutoScrollRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [])
 
-  // 监听滚动事件，判断是否应该自动滚动
   const handleScroll = useCallback(() => {
     if (listRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = listRef.current
@@ -78,21 +73,51 @@ export function useLogsPage(): {
     }
   }, [])
 
-  // 监听 IPC 日志事件
+  const [historyDates, setHistoryDates] = useState<string[]>([])
+
+  const loadHistory = useCallback(async (date: string) => {
+    const lines = await window.electron.log.history(date)
+    const entries: LogEntry[] = lines.map((line, i) => {
+      const match = line.match(/^\[(\d{2}:\d{2}:\d{2})\]\s*\[(\w+)\s*\]\s*\[(.+?)\]\s*(.*)$/)
+      if (!match) {
+        return {
+          id: `hist-${date}-${i}`,
+          level: 'info' as const,
+          tag: 'file',
+          message: line,
+          timestamp: 0
+        }
+      }
+      const [, time, level, tag, message] = match
+      const today = new Date().toISOString().slice(0, 10)
+      const d = new Date(`${today}T${time}`)
+      return {
+        id: `hist-${date}-${i}`,
+        level: level.toLowerCase() as LogEntry['level'],
+        tag,
+        message,
+        timestamp: d.getTime() || Date.now()
+      }
+    })
+    setLogs((prev) => [...entries, ...prev])
+  }, [])
+
+  useEffect(() => {
+    window.electron.log.listDates().then(setHistoryDates)
+  }, [])
+
   useEffect(() => {
     const cleanup = window.electron.log.onNew(addEntry)
     window.electron.log.request().then(setLogs)
     return cleanup
   }, [addEntry])
 
-  // 新日志到来时自动滚动
   useEffect(() => {
     scrollToBottom()
   }, [filteredLogs, scrollToBottom])
 
   return {
     logs: filteredLogs,
-    allLogs: logs,
     levelFilter,
     tagFilter,
     availableTags,
@@ -100,6 +125,8 @@ export function useLogsPage(): {
     toggleLevel,
     setTagFilter,
     clearLogs,
-    handleScroll
+    handleScroll,
+    loadHistory,
+    historyDates
   }
 }
