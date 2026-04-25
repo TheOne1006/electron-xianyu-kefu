@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useToast } from '../contexts/ToastContext'
 import { useConfigsPage } from './configs-page-model'
 
@@ -15,6 +16,8 @@ export function ConfigsPage(): React.JSX.Element {
     commitKeywordInput,
     handleSave
   } = useConfigsPage()
+
+  const [dataExpanded, setDataExpanded] = useState(false)
 
   const { showToast } = useToast()
 
@@ -57,23 +60,62 @@ export function ConfigsPage(): React.JSX.Element {
     >
       <div style={{ width: '100%', maxWidth: '1200px' }}>
         <section className="card" style={{ marginBottom: 'var(--space-4)' }}>
-          <h2 className="h2" style={{ marginBottom: 'var(--space-4)' }}>
-            数据管理
-          </h2>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-            <button onClick={() => void handleExport()} className="btn btn-primary">
-              导出数据
-            </button>
-            <button onClick={() => void handleImport()} className="btn btn-primary">
-              导入数据
-            </button>
-            <button onClick={() => void handleOpenDir()} className="btn btn-primary">
-              打开数据目录
-            </button>
+          <div
+            onClick={() => setDataExpanded(!dataExpanded)}
+            aria-expanded={dataExpanded}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <h2 className="h2" style={{ margin: 0 }}>
+              数据管理
+            </h2>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{
+                flexShrink: 0,
+                transform: dataExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 200ms ease-in-out',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
           </div>
-          <p className="form-hint" style={{ marginTop: 'var(--space-3)' }}>
-            导出/导入范围：应用配置、Agent 配置、文档库、商品目录
-          </p>
+          <div
+            style={{
+              maxHeight: dataExpanded ? '200px' : '0',
+              overflow: 'hidden',
+              transition: 'max-height 250ms ease-in-out'
+            }}
+          >
+            <div style={{ paddingTop: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+                <button onClick={() => void handleExport()} className="btn btn-primary">
+                  导出数据
+                </button>
+                <button onClick={() => void handleImport()} className="btn btn-primary">
+                  导入数据
+                </button>
+                <button onClick={() => void handleOpenDir()} className="btn btn-primary">
+                  打开数据目录
+                </button>
+              </div>
+              <p className="form-hint" style={{ marginTop: 'var(--space-3)' }}>
+                导出/导入范围：应用配置、Agent 配置、文档库、商品目录
+              </p>
+            </div>
+          </div>
         </section>
         <div
           style={{
